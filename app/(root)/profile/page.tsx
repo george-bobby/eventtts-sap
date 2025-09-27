@@ -24,21 +24,22 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
     redirect("/sign-in");
   }
 
-  const mongoUser = await getUserByClerkId(clerkId);
-  // Await searchParams in Next.js 15+
-  const params = await searchParams;
-  const organizedEventsPage = Number(params.page) || 1;
+  try {
+    const mongoUser = await getUserByClerkId(clerkId);
+    // Await searchParams in Next.js 15+
+    const params = await searchParams;
+    const organizedEventsPage = Number(params.page) || 1;
 
-  const organizedEventsPromise = getEventsByUserId({ userId: mongoUser._id, page: organizedEventsPage });
-  const ordersPromise = getOrdersByUserId({ userId: mongoUser._id });
+    const organizedEventsPromise = getEventsByUserId({ userId: mongoUser._id, page: organizedEventsPage });
+    const ordersPromise = getOrdersByUserId({ userId: mongoUser._id });
 
-  const [organizedEvents, orders] = await Promise.all([
-    organizedEventsPromise,
-    ordersPromise,
-  ]);
+    const [organizedEvents, orders] = await Promise.all([
+      organizedEventsPromise,
+      ordersPromise,
+    ]);
 
-  const myTickets = orders?.data.map((order: IOrder) => order.event) || [];
-  const myOrganizedEvents = organizedEvents?.data || [];
+    const myTickets = orders?.data.map((order: IOrder) => order.event) || [];
+    const myOrganizedEvents = organizedEvents?.data || [];
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -96,6 +97,20 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('Profile page error:', error);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
+          <p className="text-gray-600 mb-4">We encountered an error while loading your profile.</p>
+          <Link href="/" className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+            Go to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default ProfilePage;
