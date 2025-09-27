@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-// Zod schema for structured task generation - simplified to avoid deep type instantiation
+// Simplified Zod schema to avoid deep type instantiation issues
 const SubtaskSchema = z.object({
 	id: z.string(),
 	content: z.string(),
@@ -26,10 +26,26 @@ const TasksResponseSchema = z.object({
 	eventType: z.string(),
 });
 
-// Type definitions to avoid inference issues
-type SubtaskType = z.infer<typeof SubtaskSchema>;
-type TaskType = z.infer<typeof TaskSchema>;
-type TasksResponseType = z.infer<typeof TasksResponseSchema>;
+// Explicit type definitions to avoid inference issues
+interface SubtaskType {
+	id: string;
+	content: string;
+}
+
+interface TaskType {
+	id: string;
+	content: string;
+	column: 'planning' | 'developing' | 'reviewing' | 'finished';
+	priority: 'high' | 'medium' | 'low';
+	estimatedDuration: string;
+	subtasks: SubtaskType[];
+}
+
+interface TasksResponseType {
+	tasks: TaskType[];
+	totalTasks: number;
+	eventType: string;
+}
 
 export interface TaskSuggestion {
 	id: string;
@@ -126,11 +142,11 @@ Generate ${
 			isSubEvent ? '6-8' : '8-12'
 		} tasks total, distributed across the phases appropriately.`;
 
-		const result = (await generateObject({
+		const result = await generateObject({
 			model: google('gemini-1.5-pro'),
 			schema: TasksResponseSchema,
 			prompt: prompt,
-		})) as { object: TasksResponseType };
+		});
 
 		// Convert structured response to TaskSuggestion format
 		const tasks: TaskSuggestion[] = result.object.tasks.map((task, index) => ({
