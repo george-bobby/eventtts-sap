@@ -4,13 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { dateConverter, timeFormatConverter } from "@/lib/utils";
 import Link from "next/link";
 import LikeCartButton from "./LikeCartButton";
-import { getUserByClerkId } from "@/lib/actions/user.action";
 import DeleteEventButton from "./DeleteEventButton";
-import { IEvent } from "@/lib/models/event.model";
 import { Button } from "@/components/ui/button";
+import { EventWithSubEvents } from "@/lib/actions/event.action";
 
 interface Props {
-  event: IEvent;
+  event: EventWithSubEvents;
   currentUserId: string | null;
   page?: string;
   user?: any; // The pre-fetched user data
@@ -118,16 +117,18 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false }: Pro
             : "Organizer"}
         </Badge>
 
-        {/* Show ticket info if available */}
-        {event.ticketsLeft !== undefined && event.ticketsLeft > 0 && (
-          <span className="text-xs text-gray-500">
-            {event.ticketsLeft}{" "}
-            {event.ticketsLeft === 1 ? "ticket" : "tickets"} left
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Show ticket info if available */}
+          {event.ticketsLeft !== undefined && event.ticketsLeft > 0 && (
+            <span className="text-xs text-gray-500">
+              {event.ticketsLeft}{" "}
+              {event.ticketsLeft === 1 ? "ticket" : "tickets"} left
+            </span>
+          )}
 
-        {/* Delete button on profile page */}
-        {page === "profile" && <DeleteEventButton event={event} />}
+          {/* Delete button on profile page */}
+          {page === "profile" && <DeleteEventButton event={event} />}
+        </div>
       </div>
     </div>
   );

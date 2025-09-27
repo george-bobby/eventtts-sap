@@ -10,9 +10,10 @@ import Pagination from './Pagination';
 import EventFilters, { EventFilters as EventFiltersType } from './EventFilters';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { formUrlQuery, removeKeysFromQuery } from '@/lib/utils';
+import { EventWithSubEvents } from '@/lib/actions/event.action';
 
 interface InteractiveEventsDiscoveryProps {
-  events: any[];
+  events: EventWithSubEvents[];
   currentUserId: string | null;
   totalPages: number;
   page: number;

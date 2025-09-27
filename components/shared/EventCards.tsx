@@ -1,10 +1,10 @@
-import { IEvent } from "@/lib/models/event.model";
+import { EventWithSubEvents } from "@/lib/actions/event.action";
 // ✅ FIX: Use the correct path alias to find the component
 import EventCard from "@/components/shared/EventCard";
 import NoResults from "@/components/shared/NoResults";
 
 interface EventCardsProps {
-  events: IEvent[];
+  events: EventWithSubEvents[];
   currentUserId: string | null;
   emptyTitle: string;
   emptyStateSubtext: string;
