@@ -51,14 +51,14 @@ const eventSchema = new Schema<IEvent>(
 		startTime: { type: String, required: true },
 		endTime: { type: String, required: true },
 		duration: { type: Number },
-		totalCapacity: { type: Number, default: 0 },
+		totalCapacity: { type: Number, default: -1 }, // -1 means unlimited capacity
 		isFree: { type: Boolean, default: false },
 		price: { type: Number, default: 0 },
 		category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
 		tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }],
 		organizer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 		attendees: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-		ticketsLeft: { type: Number, default: 0 },
+		ticketsLeft: { type: Number, default: -1 }, // -1 means unlimited tickets
 		soldOut: { type: Boolean, default: false },
 		ageRestriction: { type: Number, default: 0 },
 		url: { type: String },

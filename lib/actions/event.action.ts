@@ -52,6 +52,10 @@ export async function createEvent(eventData: any) {
 		await connectToDatabase();
 
 		let data = { ...eventData };
+		// Handle capacity: if no capacity is set or 0, make it unlimited (-1)
+		if (!data.totalCapacity || data.totalCapacity === 0) {
+			data.totalCapacity = -1; // Unlimited capacity
+		}
 		data.ticketsLeft = data.totalCapacity;
 		data.eventType = 'main';
 		data.status = 'published';
@@ -107,8 +111,9 @@ export async function createEvent(eventData: any) {
 					organizer: mainEvent.organizer,
 					category: mainEvent.category,
 					photo: subEventData.photo || mainEvent.photo,
-					totalCapacity: 0,
-					ticketsLeft: 0,
+					// Sub-events inherit parent's capacity management
+					totalCapacity: mainEvent.totalCapacity,
+					ticketsLeft: mainEvent.ticketsLeft,
 					soldOut: false,
 					eventType: 'sub',
 					status: 'published',
@@ -731,5 +736,30 @@ export async function generateSalesReport(eventId: string) {
 	} catch (error) {
 		console.error(error);
 		throw new Error('Failed to generate sales report');
+	}
+}
+
+// Function to fix existing events with 0 capacity to unlimited
+export async function fixEventCapacities() {
+	try {
+		await connectToDatabase();
+
+		// Update all events with totalCapacity 0 to unlimited (-1)
+		const result = await Event.updateMany(
+			{ totalCapacity: 0 },
+			{
+				$set: {
+					totalCapacity: -1,
+					ticketsLeft: -1,
+					soldOut: false,
+				},
+			}
+		);
+
+		console.log(`Fixed ${result.modifiedCount} events with 0 capacity`);
+		return result;
+	} catch (error) {
+		console.log(error);
+		throw error;
 	}
 }

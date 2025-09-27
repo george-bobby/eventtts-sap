@@ -461,6 +461,7 @@ export default function InteractiveEventsDiscovery({
                 emptyTitle="No events found"
                 emptyStateSubtext="Try adjusting your filters or search terms"
                 user={user}
+                page="explore"
               />
             </div>
 

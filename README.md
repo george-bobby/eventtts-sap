@@ -1,6 +1,6 @@
 # 🎯 Event Management Platform
 
-A comprehensive, AI-powered event management platform designed for students and organizations to create, manage, and attend events with advanced features like QR code ticketing, AI task generation, location prediction, photo galleries, and automated certificate generation.
+A comprehensive, AI-powered event management platform designed for organizations to create, manage, and attend events with advanced features like QR code ticketing, AI task generation, location prediction, photo galleries, and automated certificate generation.
 
 ![Event Platform](https://img.shields.io/badge/Next.js-15-black) ![TypeScript](https://img.shields.io/badge/TypeScript-blue) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38B2AC) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248) ![AI Powered](https://img.shields.io/badge/AI-Powered-orange)
 

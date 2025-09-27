@@ -57,32 +57,20 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false }: Pro
         />
       )}
 
-      {/* Organizer buttons - different layout for profile page vs other pages */}
+      {/* Organizer buttons - only show Manage button on profile page */}
       {isOrganizer && page === "profile" && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100">
-          <Button asChild size="sm" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
-            <Link href={`/event/${event._id}/plan`}>🎯 Plan</Link>
-          </Button>
           <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700">
             <Link href={`/event/${event._id}/manage`}>Manage</Link>
           </Button>
         </div>
       )}
 
-      {/* Edit, Attendees, Plan, and AI Report buttons for organizer on non-profile pages */}
-      {isOrganizer && page !== "profile" && (
+      {/* Only show Manage button for organizer on explore events page and event detail pages */}
+      {isOrganizer && (page === "explore" || page === "event-detail") && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100">
-          <Button asChild size="sm" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
-            <Link href={`/event/${event._id}/plan`}>🎯 Plan</Link>
-          </Button>
-          <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
-            <Link href={`/event/${event._id}/update`}>Edit</Link>
-          </Button>
-          <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700">
-            <Link href={`/event/${event._id}/attendees`}>Attendees</Link>
-          </Button>
-          <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Link href={`/event/${event._id}/report`}>AI Report</Link>
+          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+            <Link href={`/event/${event._id}/manage`}>Manage</Link>
           </Button>
         </div>
       )}
@@ -149,10 +137,15 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false }: Pro
 
         <div className="flex items-center gap-2">
           {/* Show ticket info if available */}
-          {event.ticketsLeft !== undefined && event.ticketsLeft > 0 && (
+          {event.ticketsLeft !== undefined && event.ticketsLeft !== -1 && event.ticketsLeft > 0 && (
             <span className="text-xs text-gray-500">
               {event.ticketsLeft}{" "}
               {event.ticketsLeft === 1 ? "ticket" : "tickets"} left
+            </span>
+          )}
+          {event.ticketsLeft === -1 && (
+            <span className="text-xs text-gray-500">
+              Unlimited capacity
             </span>
           )}
 

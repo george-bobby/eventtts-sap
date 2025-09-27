@@ -21,14 +21,14 @@ export default function EventsHero() {
             {/* Badge */}
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium mb-8">
               <Sparkles className="w-4 h-4 mr-2 text-yellow-400" />
-              Campus Events Made Simple
+              Events Management Made Simple
             </div>
 
             {/* Main Heading */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
               Discover Amazing
               <span className="block bg-gradient-to-r from-red-400 via-red-400 to-red-400 bg-clip-text text-transparent">
-                Campus Events
+                Events
               </span>
             </h1>
 
@@ -62,7 +62,7 @@ export default function EventsHero() {
                 <div className="bg-white/20 rounded-xl p-4 border border-white/30">
                   <Users className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-white mb-1">10K+</div>
-                  <div className="text-white/80 text-sm">Active Students</div>
+                  <div className="text-white/80 text-sm">Active People</div>
                 </div>
               </div>
 

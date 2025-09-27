@@ -184,14 +184,18 @@ export async function createOrder(order: createOrderParams) {
 		const targetEvent = parentEvent || event;
 
 		// Check ticket availability from the target event
+		// -1 means unlimited capacity
 		const availableTickets =
-			targetEvent.ticketsLeft !== undefined
+			targetEvent.ticketsLeft === -1
+				? -1 // Unlimited
+				: targetEvent.ticketsLeft !== undefined
 				? targetEvent.ticketsLeft
 				: targetEvent.totalCapacity > 0
 				? targetEvent.totalCapacity
 				: 0;
 
-		if (availableTickets < order.totalTickets) {
+		// Only check availability if there's a limit (not unlimited)
+		if (availableTickets !== -1 && availableTickets < order.totalTickets) {
 			throw new Error(
 				`Only ${availableTickets} ticket${
 					availableTickets !== 1 ? 's' : ''
@@ -213,8 +217,11 @@ export async function createOrder(order: createOrderParams) {
 		// Create the order
 		const newOrder = await Order.create(orderData);
 
-		// Update ticket count for the target event
-		if (targetEvent.ticketsLeft !== undefined) {
+		// Update ticket count for the target event (only if not unlimited)
+		if (
+			targetEvent.ticketsLeft !== undefined &&
+			targetEvent.ticketsLeft !== -1
+		) {
 			targetEvent.ticketsLeft = Math.max(
 				0,
 				availableTickets - order.totalTickets
@@ -223,9 +230,9 @@ export async function createOrder(order: createOrderParams) {
 			await targetEvent.save();
 		}
 
-		// If we have a sub-event, update its ticket count as well
+		// If we have a sub-event, update its ticket count as well (only if not unlimited)
 		if (subEventId && event._id.toString() !== targetEvent._id.toString()) {
-			if (event.ticketsLeft !== undefined) {
+			if (event.ticketsLeft !== undefined && event.ticketsLeft !== -1) {
 				event.ticketsLeft = Math.max(
 					0,
 					(event.ticketsLeft || 0) - order.totalTickets
@@ -280,6 +287,28 @@ export async function getOrdersByUserId({
 			data: JSON.parse(JSON.stringify(orders)),
 			totalPages: Math.ceil(ordersCount / limit),
 		};
+	} catch (error) {
+		console.log(error);
+		throw error;
+	}
+}
+
+export async function checkUserRegistration({
+	userId,
+	eventId,
+}: {
+	userId: string;
+	eventId: string;
+}) {
+	try {
+		await connectToDatabase();
+
+		const order = await Order.findOne({
+			user: userId,
+			event: eventId,
+		});
+
+		return !!order; // Returns true if user is registered, false otherwise
 	} catch (error) {
 		console.log(error);
 		throw error;

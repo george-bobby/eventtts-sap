@@ -40,12 +40,12 @@ const Footer = () => {
 
   const stats = [
     { icon: Calendar, label: "Active Events", value: "1.2K+" },
-    { icon: Users, label: "Students Connected", value: "15K+" },
+    { icon: Users, label: "People Connected", value: "15K+" },
     { icon: Sparkles, label: "Successful Events", value: "500+" }
   ];
 
   return (
-    <footer className="bg-gray-900 text-white relative">
+    <footer className="bg-gray-900 text-white relative mt-200">
 
       <div className="relative z-10">
         {/* Main Footer Content */}
@@ -63,7 +63,7 @@ const Footer = () => {
                 />
               </Link>
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Connecting students through amazing campus experiences.
+                Connecting people through amazing event experiences.
                 Discover, create, and attend events that matter to you.
               </p>
 
@@ -166,7 +166,7 @@ const Footer = () => {
                   </p>
                 </Link>
                 <span className="text-gray-400">•</span>
-                <p className="text-gray-400">Made with ❤️ for Students</p>
+                <p className="text-gray-400">Made with ❤️ and ☕</p>
               </div>
 
               <button

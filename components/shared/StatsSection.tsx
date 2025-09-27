@@ -79,7 +79,7 @@ const stats = [
   {
     icon: Users,
     endValue: 15000,
-    label: 'Active Students',
+    label: 'Active Audiences',
     suffix: '+',
     gradient: 'from-blue-500 to-cyan-500'
   },
@@ -120,7 +120,7 @@ export default function StatsSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Trusted by Students Everywhere
+            Trusted by Organizers Everywhere
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             See how our platform is transforming campus life and creating meaningful connections across universities worldwide.
@@ -143,7 +143,7 @@ export default function StatsSection() {
                   Making Campus Life More Connected
                 </h3>
                 <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                  Our platform has facilitated thousands of meaningful connections, helped students discover their passions,
+                  Our platform has facilitated thousands of meaningful connections, helped people discover their passions,
                   and created a more vibrant campus community across multiple universities.
                 </p>
                 <div className="space-y-4">

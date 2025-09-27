@@ -37,7 +37,7 @@ export default function EventStats({
             icon: Users,
             label: 'Total Attendees',
             value: totalAttendees.toLocaleString(),
-            subtext: 'Students registered',
+            subtext: 'Participants registered',
             color: 'text-purple-600',
             bgColor: 'bg-purple-100'
         },

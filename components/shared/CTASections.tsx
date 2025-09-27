@@ -140,7 +140,7 @@ export default function CTASections() {
               <div className="order-1 lg:order-2">
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-6">
                   <Clock className="w-4 h-4 mr-2" />
-                  For Students
+                  For Participants
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                   Discover Events

@@ -1,56 +1,68 @@
 'use client';
 
-import { Calendar, Users, MapPin, Star, Share2, Bell, Clock, Trophy } from 'lucide-react';
+import { BarChart3, Users, QrCode, Star, ImageIcon, FileText, Calendar, Award, Bug, UserCheck, Zap, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const features = [
   {
-    icon: Calendar,
-    title: "Smart Event Discovery",
-    description: "Find events that match your interests with our AI-powered recommendation system. Never miss out on what matters to you.",
+    icon: BarChart3,
+    title: "AI-Powered Analytics",
+    description: "Get intelligent insights about your events with automated reports on attendance, engagement, and revenue performance.",
     gradient: "from-red-500 to-indigo-500"
   },
   {
-    icon: Users,
-    title: "Community Building",
-    description: "Connect with like-minded students, join study groups, and build lasting friendships through shared experiences.",
+    icon: FileText,
+    title: "Auto Feedback Collection",
+    description: "Automatically collect and analyze attendee feedback with customizable forms and AI-generated insights.",
     gradient: "from-blue-500 to-cyan-500"
   },
   {
-    icon: MapPin,
-    title: "Campus Navigation",
-    description: "Get precise directions to event locations with our integrated campus mapping and navigation system.",
+    icon: TrendingUp,
+    title: "Revenue Analytics",
+    description: "Track ticket sales, monitor revenue streams, and get detailed financial insights for better decision making.",
     gradient: "from-green-500 to-emerald-500"
   },
   {
-    icon: Star,
-    title: "Event Rating System",
-    description: "Rate and review events to help others discover quality experiences and improve future campus activities.",
+    icon: Award,
+    title: "Certificate Generation",
+    description: "Automatically generate and distribute digital certificates to attendees with customizable templates and branding.",
     gradient: "from-yellow-500 to-orange-500"
   },
   {
-    icon: Share2,
-    title: "Social Sharing",
-    description: "Share events with friends, create group attendance, and spread the word about amazing campus activities.",
+    icon: Bug,
+    title: "Issue Reporting",
+    description: "Built-in system for attendees to report issues and for organizers to track and resolve problems efficiently.",
     gradient: "from-pink-500 to-rose-500"
   },
   {
-    icon: Bell,
-    title: "Smart Notifications",
-    description: "Get personalized reminders and updates about events you're interested in or attending.",
-    gradient: "from-indigo-500 to-red-500"
+    icon: ImageIcon,
+    title: "Event Gallery",
+    description: "Enable photo sharing with attendees, create collaborative galleries, and showcase your event memories.",
+    gradient: "from-indigo-500 to-purple-500"
   },
   {
-    icon: Clock,
-    title: "Real-time Updates",
-    description: "Stay informed with live updates about event changes, cancellations, or last-minute announcements.",
+    icon: Zap,
+    title: "AI Event Planning",
+    description: "Get AI-generated event plans, schedules, and suggestions to streamline your event organization process.",
     gradient: "from-teal-500 to-blue-500"
   },
   {
-    icon: Trophy,
-    title: "Achievement System",
-    description: "Earn badges and recognition for event participation, community engagement, and campus involvement.",
+    icon: QrCode,
+    title: "QR Code Tickets",
+    description: "Generate secure QR code tickets for easy check-in, attendance tracking, and enhanced security at your events.",
     gradient: "from-amber-500 to-yellow-500"
+  },
+  {
+    icon: UserCheck,
+    title: "Attendee Management",
+    description: "Comprehensive attendee tracking, registration management, and communication tools all in one place.",
+    gradient: "from-violet-500 to-purple-500"
+  },
+  {
+    icon: Users,
+    title: "Stakeholder Dashboard",
+    description: "Provide stakeholders with real-time event insights, progress reports, and collaborative planning tools.",
+    gradient: "from-cyan-500 to-teal-500"
   }
 ];
 
@@ -61,15 +73,15 @@ export default function FeaturesSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Why Students Love Our Platform
+            Powerful Tools for Event Organizers
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover powerful features designed to enhance your campus experience and help you make the most of your student life.
+            Streamline your event management with AI-powered features designed to maximize efficiency, engagement, and success.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 max-w-7xl mx-auto">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
@@ -78,12 +90,12 @@ export default function FeaturesSection() {
                   <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${feature.gradient} mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                     <IconComponent className="w-8 h-8 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
+                  <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
                     {feature.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 leading-relaxed">
+                  <CardDescription className="text-gray-600 leading-relaxed text-sm">
                     {feature.description}
                   </CardDescription>
                 </CardContent>

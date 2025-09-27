@@ -189,7 +189,8 @@ const LikeCartButton = ({ event, user, likedEvent, option }: LikeCartButtonProps
   const [isLiked, setIsLiked] = useState(likedEvent);
 
   const isEventPast = new Date(event.startDate) < new Date();
-  const areTicketsAvailable = event.ticketsLeft > 0 && !event.soldOut;
+  // Handle unlimited capacity (-1) and regular capacity
+  const areTicketsAvailable = (event.ticketsLeft === -1 || event.ticketsLeft > 0) && !event.soldOut;
   const isCartDisabled = isEventPast || !areTicketsAvailable;
 
   useEffect(() => {

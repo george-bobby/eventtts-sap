@@ -9,7 +9,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'Explore Events | SAP Hackathon',
-    description: 'Discover amazing events, workshops, seminars, and activities happening on campus. Find your perfect event and connect with like-minded students.',
+    description: 'Discover amazing events, workshops, seminars, and activities happening on campus. Find your perfect event and connect with like-minded people.',
     keywords: ['events', 'university', 'student activities', 'workshops', 'seminars', 'campus events'],
 };
 

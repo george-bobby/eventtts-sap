@@ -3,14 +3,17 @@ import EventCards from "@/components/shared/EventCards";
 import LikeCartButton from "@/components/shared/LikeCartButton";
 import NoResults from "@/components/shared/NoResults";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getEventById, getRelatedEvents } from "@/lib/actions/event.action";
 import { getUserByClerkId } from "@/lib/actions/user.action";
+import { checkUserRegistration } from "@/lib/actions/order.action";
 import { dateConverter, timeFormatConverter } from "@/lib/utils";
 import { auth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { headers } from "next/headers";
+import RaiseIssueButton from "@/components/shared/RaiseIssueButton";
 
 interface Props {
 	params: Promise<{ id: string }>;
@@ -25,11 +28,17 @@ const Page = async ({ params }: Props) => {
 	const { userId } = await auth();
 	let user = null;
 	let likedEvent = false;
+	let isRegistered = false;
 
 	if (userId) {
 		user = await getUserByClerkId(userId);
 		if (user) {
 			likedEvent = user.likedEvents.includes(awaitedParams.id);
+			// Check if user is registered for this event
+			isRegistered = await checkUserRegistration({
+				userId: user._id,
+				eventId: awaitedParams.id,
+			});
 		}
 	}
 
@@ -40,6 +49,9 @@ const Page = async ({ params }: Props) => {
 	}
 
 	const relatedEvents = !event.parentEvent ? await getRelatedEvents(awaitedParams.id) : [];
+
+	// Check if current user is the organizer
+	const isOrganizer = user && String(event.organizer._id) === String(user._id);
 
 	return (
 		<div className="font-medium md:mx-24">
@@ -76,12 +88,49 @@ const Page = async ({ params }: Props) => {
 					>{`By ${(event.organizer as any)?.firstName || ''} ${(event.organizer as any)?.lastName || ''}`}</Badge>
 				</div>
 
-				<LikeCartButton
-					event={JSON.parse(JSON.stringify(event))}
-					user={JSON.parse(JSON.stringify(user))}
-					likedEvent={likedEvent}
-					option="eventPage"
-				/>
+				{/* Action buttons based on user relationship to event */}
+				<div className="flex flex-wrap gap-3">
+					{!userId ? (
+						// Show login prompt for non-authenticated users
+						<div className="flex flex-wrap gap-3">
+							<Button asChild size="lg" variant="outline">
+								<Link href="/sign-in">
+									Sign In to Register
+								</Link>
+							</Button>
+							<LikeCartButton
+								event={JSON.parse(JSON.stringify(event))}
+								user={JSON.parse(JSON.stringify(user))}
+								likedEvent={likedEvent}
+								option="eventPage"
+							/>
+						</div>
+					) : isOrganizer ? (
+						// Show Manage Event button for organizers
+						<Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
+							<Link href={`/event/${event._id}/manage`}>
+								⚙️ Manage Event
+							</Link>
+						</Button>
+					) : isRegistered ? (
+						// Show Report Issue button for registered users
+						<RaiseIssueButton
+							event={JSON.parse(JSON.stringify(event))}
+							currentUserId={userId}
+							variant="outline"
+							size="lg"
+							className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300"
+						/>
+					) : (
+						// Show registration/booking button for non-registered users
+						<LikeCartButton
+							event={JSON.parse(JSON.stringify(event))}
+							user={JSON.parse(JSON.stringify(user))}
+							likedEvent={likedEvent}
+							option="eventPage"
+						/>
+					)}
+				</div>
 
 				<div className="flex flex-wrap gap-3">
 					<div>
@@ -113,51 +162,17 @@ const Page = async ({ params }: Props) => {
 					</Link>
 				)}
 
-				{/* Organizer Controls - Only show if current user is the organizer */}
-				{user && String(event.organizer._id) === String(user._id) && (
-					<div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-6">
-						<h3 className="text-lg font-semibold text-gray-800 mb-3">Event Management</h3>
-						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-							<Link href={`/event/${event._id}/manage`}>
-								<button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full flex items-center justify-center gap-2">
-									⚙️ Manage Event
-								</button>
-							</Link>
-							<Link href={`/event/${event._id}/update`}>
-								<button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-									Edit Event
-								</button>
-							</Link>
-							<Link href={`/event/${event._id}/attendees`}>
-								<button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-									Manage Attendees
-								</button>
-							</Link>
-							<Link href={`/event/${event._id}/stakeholders`}>
-								<button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-									Stakeholders
-								</button>
-							</Link>
-							<Link href={`/event/${event._id}/certificates`}>
-								<button className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-									Certificates
-								</button>
-							</Link>
-							<Link href={`/event/${event._id}/gallery`}>
-								<button className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-									Photo Gallery
-								</button>
-							</Link>
-							<Link href={`/event/${event._id}/report`}>
-								<button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
-									Generate Report
-								</button>
-							</Link>
-						</div>
+				{/* Additional info for registered users */}
+				{isRegistered && !isOrganizer && (
+					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+						<h3 className="text-lg font-semibold text-blue-800 mb-2">You're Registered!</h3>
+						<p className="text-blue-600 text-sm">
+							You have successfully registered for this event. If you encounter any issues, please use the "Report Issue" button above.
+						</p>
 					</div>
 				)}
 
-				<div className="flex flex-wrap gap-3">
+				<div className="flex flex-wrap gap-3 mb-8">
 					{event.tags?.map((tag: any) => {
 						return (
 							<Badge
@@ -188,6 +203,7 @@ const Page = async ({ params }: Props) => {
 									currentUserId={userId}
 									user={user}
 									likedEvent={subEventLikedEvent}
+									page="event-detail"
 								/>
 							);
 						})}
@@ -207,6 +223,7 @@ const Page = async ({ params }: Props) => {
 						emptyTitle="No Related Events Found"
 						emptyStateSubtext="Check out other events below"
 						user={user}
+						page="event-detail"
 					/>
 				</div>
 			)}

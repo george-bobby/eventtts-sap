@@ -676,11 +676,15 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 							<FormControl>
 								<Input
 									type="number"
-									placeholder="Total capacity (optional)"
+									placeholder="Total capacity (leave empty for unlimited)"
 									{...field}
 									className="input-field"
+									min="1"
 								/>
 							</FormControl>
+							<FormDescription className="text-xs text-gray-500">
+								Set a maximum number of registrants. Leave empty for unlimited capacity.
+							</FormDescription>
 							<FormMessage />
 						</FormItem>
 					)}
