@@ -55,10 +55,7 @@ export async function PUT(
 		const body = await request.json();
 		const updates = body;
 
-		const template = await updateCertificateTemplate(
-			templateId,
-			updates
-		);
+		const template = await updateCertificateTemplate(templateId, updates);
 
 		return NextResponse.json({
 			success: true,
