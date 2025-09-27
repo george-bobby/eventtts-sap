@@ -1,7 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
-import { z } from 'zod';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -102,43 +99,53 @@ Generate ${
 			isSubEvent ? '6-8' : '8-12'
 		} tasks total, distributed across the phases appropriately.`;
 
-		// Use a simpler schema to avoid deep type instantiation
-		const simpleSchema = z.object({
-			tasks: z.array(
-				z.object({
-					content: z.string(),
-					column: z.string(),
-					priority: z.string(),
-					estimatedDuration: z.string(),
-					subtasks: z.array(
-						z.object({
-							content: z.string(),
-						})
-					),
-				})
-			),
-			totalTasks: z.number(),
-			eventType: z.string(),
+		// Use Google Generative AI directly to avoid type instantiation issues
+		const model = genAI.getGenerativeModel({
+			model: 'gemini-1.5-pro',
+			generationConfig: {
+				responseMimeType: 'application/json',
+			},
 		});
 
-		const result = await generateObject({
-			model: google('gemini-1.5-pro'),
-			schema: simpleSchema,
-			prompt: prompt,
-		});
+		const jsonPrompt = `${prompt}
+
+Return the response as a JSON object with this exact structure:
+{
+  "tasks": [
+    {
+      "content": "string",
+      "column": "planning|developing|reviewing|finished",
+      "priority": "high|medium|low",
+      "estimatedDuration": "string",
+      "subtasks": [
+        {
+          "content": "string"
+        }
+      ]
+    }
+  ],
+  "totalTasks": number,
+  "eventType": "string"
+}`;
+
+		const result = await model.generateContent(jsonPrompt);
+		const responseText = result.response.text();
+		const parsedResponse = JSON.parse(responseText);
 
 		// Convert structured response to TaskSuggestion format
-		const tasks: TaskSuggestion[] = result.object.tasks.map((task, index) => ({
-			id: `task_${Date.now()}_${index}`,
-			content: task.content,
-			column: task.column,
-			priority: task.priority as 'high' | 'medium' | 'low',
-			estimatedDuration: task.estimatedDuration,
-			subtasks: task.subtasks.map((subtask, subIndex) => ({
-				id: `subtask_${Date.now()}_${index}_${subIndex}`,
-				content: subtask.content,
-			})),
-		}));
+		const tasks: TaskSuggestion[] = parsedResponse.tasks.map(
+			(task: any, index: number) => ({
+				id: `task_${Date.now()}_${index}`,
+				content: task.content,
+				column: task.column,
+				priority: task.priority as 'high' | 'medium' | 'low',
+				estimatedDuration: task.estimatedDuration,
+				subtasks: task.subtasks.map((subtask: any, subIndex: number) => ({
+					id: `subtask_${Date.now()}_${index}_${subIndex}`,
+					content: subtask.content,
+				})),
+			})
+		);
 
 		return tasks;
 	} catch (error) {
@@ -148,115 +155,8 @@ Generate ${
 	}
 }
 
-function getEventTypeSpecificRequirements(
-	eventType: string,
-	isSubEvent?: boolean
-): string {
-	const baseRequirements: Record<string, string> = {
-		hackathons: `
-      ${isSubEvent ? 'Sub-event specific:' : 'Main event:'}
-      ${
-				isSubEvent
-					? '- Specific challenge/theme setup\n      - Mentorship for this track\n      - Judging criteria for sub-category\n      - Resource allocation for participants\n      - Integration with main hackathon timeline'
-					: '- WiFi setup and network capacity planning\n      - Extension cords and power strips\n      - Projection equipment and screens\n      - Registration and check-in system\n      - Food and beverage arrangements\n      - Judging criteria and panel setup\n      - Prize procurement and distribution\n      - Mentorship coordination\n      - Technical support team\n      - Venue security and access control'
-			}
-    `,
-		workshops: `
-      ${isSubEvent ? 'Sub-workshop specific:' : 'Main workshop:'}
-      ${
-				isSubEvent
-					? '- Workshop-specific material preparation\n      - Facilitator briefing and coordination\n      - Session content and timing\n      - Participant grouping for this session\n      - Equipment needs for this workshop'
-					: '- Material and supplies procurement\n      - Handout and resource preparation\n      - Equipment setup and testing\n      - Participant registration management\n      - Facilitator coordination\n      - Feedback collection system\n      - Certificate preparation\n      - Follow-up communication plan'
-			}
-    `,
-		seminars: `
-      ${isSubEvent ? 'Sub-session specific:' : 'Main seminar:'}
-      ${
-				isSubEvent
-					? '- Speaker preparation and briefing\n      - Content coordination with main agenda\n      - Session timing and transitions\n      - Q&A session planning\n      - Specific presentation setup'
-					: '- Speaker coordination and briefing\n      - Audio-visual equipment setup\n      - Seating arrangement planning\n      - Registration and attendance tracking\n      - Q&A session management\n      - Recording equipment setup\n      - Networking session organization\n      - Follow-up material distribution'
-			}
-    `,
-		sports: `
-      ${isSubEvent ? 'Sub-competition specific:' : 'Main sports event:'}
-      ${
-				isSubEvent
-					? '- Specific game/match setup\n      - Team coordination for this event\n      - Equipment for specific sport\n      - Scoring system for sub-event\n      - Integration with main tournament'
-					: '- Venue booking and preparation\n      - Equipment procurement and setup\n      - Referee and official coordination\n      - Participant registration and grouping\n      - Safety and medical arrangements\n      - Scorekeeping and timing systems\n      - Awards and trophy preparation\n      - Weather contingency planning'
-			}
-    `,
-		theatre: `
-      ${
-				isSubEvent
-					? 'Performance segment specific:'
-					: 'Main theatre production:'
-			}
-      ${
-				isSubEvent
-					? '- Scene/act specific preparation\n      - Costume and prop coordination\n      - Lighting cues for this segment\n      - Cast coordination and timing\n      - Rehearsal scheduling for this part'
-					: '- Script preparation and rehearsal scheduling\n      - Costume and makeup coordination\n      - Set design and construction\n      - Lighting and sound setup\n      - Ticket sales and seating management\n      - Cast and crew coordination\n      - Program booklet preparation\n      - Dress rehearsal organization'
-			}
-    `,
-		exhibitions: `
-      ${isSubEvent ? 'Exhibition section specific:' : 'Main exhibition:'}
-      ${
-				isSubEvent
-					? '- Specific display setup\n      - Exhibitor coordination for section\n      - Thematic arrangement\n      - Section-specific materials\n      - Visitor flow for this area'
-					: '- Booth design and setup\n      - Exhibitor coordination and communication\n      - Display material preparation\n      - Visitor registration and management\n      - Information desk setup\n      - Catalog and brochure preparation\n      - Feedback collection system\n      - Networking event organization'
-			}
-    `,
-		quizzes: `
-      ${isSubEvent ? 'Quiz round specific:' : 'Main quiz event:'}
-      ${
-				isSubEvent
-					? '- Round-specific questions preparation\n      - Scoring system for this round\n      - Team management for segment\n      - Time allocation and pacing\n      - Integration with main competition'
-					: '- Question preparation and verification\n      - Scoring system setup\n      - Team registration and organization\n      - Buzzer or response system setup\n      - Prize arrangement\n      - Moderation and time management\n      - Result tabulation system\n      - Audience engagement activities'
-			}
-    `,
-		social: `
-      ${isSubEvent ? 'Social activity specific:' : 'Main social event:'}
-      ${
-				isSubEvent
-					? '- Activity-specific setup\n      - Entertainment for this segment\n      - Group coordination\n      - Timeline integration\n      - Specific material needs'
-					: '- Venue decoration and ambiance setup\n      - Catering and refreshment arrangements\n      - Music and entertainment coordination\n      - Photography and videography setup\n      - Guest list management\n      - RSVP tracking system\n      - Transportation arrangements\n      - Safety and security measures'
-			}
-    `,
-		marketing: `
-      ${
-				isSubEvent ? 'Campaign component specific:' : 'Main marketing campaign:'
-			}
-      ${
-				isSubEvent
-					? '- Specific channel strategy\n      - Content for this component\n      - Target audience for segment\n      - Budget allocation for this part\n      - Coordination with main campaign'
-					: '- Campaign strategy development\n      - Content creation and approval\n      - Channel selection and setup\n      - Budget allocation and tracking\n      - Target audience identification\n      - Performance metrics definition\n      - Promotional material design\n      - Influencer and partnership coordination'
-			}
-    `,
-		training: `
-      ${isSubEvent ? 'Training module specific:' : 'Main training program:'}
-      ${
-				isSubEvent
-					? '- Module content preparation\n      - Trainer briefing for session\n      - Participant materials for module\n      - Assessment for this section\n      - Integration with main curriculum'
-					: '- Curriculum development and approval\n      - Trainer selection and briefing\n      - Training material preparation\n      - Assessment and certification setup\n      - Participant prerequisite verification\n      - Practical exercise planning\n      - Progress tracking system\n      - Post-training support setup'
-			}
-    `,
-	};
-
-	return (
-		baseRequirements[eventType.toLowerCase()] ||
-		baseRequirements['others'] ||
-		`
-    ${isSubEvent ? 'Sub-event specific:' : 'Main event:'}
-    ${
-			isSubEvent
-				? '- Component-specific planning and coordination\n    - Integration with main event timeline\n    - Specific resource allocation\n    - Content preparation for this segment\n    - Coordination with main event team'
-				: '- General event planning and coordination\n    - Venue setup and management\n    - Participant registration and communication\n    - Resource and material procurement\n    - Staff coordination and briefing\n    - Quality assurance and testing\n    - Contingency planning\n    - Post-event evaluation and cleanup'
-		}
-  `
-	);
-}
-
 function getFallbackTasks(
-	eventType: string,
+	_eventType: string,
 	isSubEvent?: boolean
 ): TaskSuggestion[] {
 	const baseId = Date.now();
