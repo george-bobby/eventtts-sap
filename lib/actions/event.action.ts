@@ -190,10 +190,7 @@ export async function getEvents({
 						{
 							$match: {
 								$expr: {
-									$and: [
-										{ $in: ['$_id', '$$eventTags'] },
-										{ $type: ['$_id', 'objectId'] }, // Only match valid ObjectIds
-									],
+									$in: ['$_id', '$$eventTags'],
 								},
 							},
 						},
@@ -326,10 +323,7 @@ export async function getEventById(
 						{
 							$match: {
 								$expr: {
-									$and: [
-										{ $in: ['$_id', '$$eventTags'] },
-										{ $type: ['$_id', 'objectId'] }, // Only match valid ObjectIds
-									],
+									$in: ['$_id', '$$eventTags'],
 								},
 							},
 						},
@@ -434,10 +428,7 @@ export async function getEventById(
 							{
 								$match: {
 									$expr: {
-										$and: [
-											{ $in: ['$_id', '$$eventTags'] },
-											{ $type: ['$_id', 'objectId'] },
-										],
+										$in: ['$_id', '$$eventTags'],
 									},
 								},
 							},
@@ -624,10 +615,7 @@ export async function getRelatedEvents(id: string) {
 						{
 							$match: {
 								$expr: {
-									$and: [
-										{ $in: ['$_id', '$$eventTags'] },
-										{ $type: ['$_id', 'objectId'] }, // Only match valid ObjectIds
-									],
+									$in: ['$_id', '$$eventTags'],
 								},
 							},
 						},
