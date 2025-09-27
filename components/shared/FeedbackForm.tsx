@@ -35,11 +35,10 @@ const StarRating = ({ value, onChange, label }: { value: number; onChange: (valu
           <button
             key={star}
             type="button"
-            className={`p-1 transition-colors ${
-              star <= (hoverValue || value)
+            className={`p-1 transition-colors ${star <= (hoverValue || value)
                 ? 'text-yellow-400'
                 : 'text-gray-300 hover:text-yellow-200'
-            }`}
+              }`}
             onMouseEnter={() => setHoverValue(star)}
             onMouseLeave={() => setHoverValue(0)}
             onClick={() => onChange(star)}
@@ -72,11 +71,10 @@ const NPSRating = ({ value, onChange }: { value: number; onChange: (value: numbe
           <button
             key={score}
             type="button"
-            className={`p-2 text-sm font-medium rounded transition-colors ${
-              score === value
+            className={`p-2 text-sm font-medium rounded transition-colors ${score === value
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
+              }`}
             onClick={() => onChange(score)}
           >
             {score}
@@ -88,6 +86,7 @@ const NPSRating = ({ value, onChange }: { value: number; onChange: (value: numbe
 };
 
 const feedbackSchema = z.object({
+  isAnonymous: z.boolean(),
   overallSatisfaction: z.number().min(1).max(5),
   contentQuality: z.number().min(1).max(5),
   organizationRating: z.number().min(1).max(5),
@@ -96,8 +95,9 @@ const feedbackSchema = z.object({
   likedMost: z.string().optional(),
   improvements: z.string().optional(),
   additionalComments: z.string().optional(),
-  isAnonymous: z.boolean().default(false),
 });
+
+type FeedbackFormData = z.infer<typeof feedbackSchema>;
 
 interface FeedbackFormProps {
   eventId: string;
@@ -122,7 +122,7 @@ export default function FeedbackForm({
   const [customAnswers, setCustomAnswers] = useState<IFeedbackAnswer[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const form = useForm<z.infer<typeof feedbackSchema>>({
+  const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
       overallSatisfaction: 0,
@@ -141,8 +141,8 @@ export default function FeedbackForm({
     setCustomAnswers(prev => {
       const existing = prev.find(a => a.questionId === questionId);
       if (existing) {
-        return prev.map(a => 
-          a.questionId === questionId 
+        return prev.map(a =>
+          a.questionId === questionId
             ? { ...a, answer }
             : a
         );
@@ -151,7 +151,7 @@ export default function FeedbackForm({
     });
   };
 
-  const handleSubmit = async (values: z.infer<typeof feedbackSchema>) => {
+  const handleSubmit = async (values: FeedbackFormData) => {
     try {
       await onSubmit({
         ...values,
@@ -394,7 +394,7 @@ export default function FeedbackForm({
                       {question.question}
                       {question.required && <span className="text-red-500 ml-1">*</span>}
                     </label>
-                    
+
                     {question.type === 'rating' && (
                       <StarRating
                         value={customAnswers.find(a => a.questionId === question.id)?.answer as number || 0}
@@ -402,7 +402,7 @@ export default function FeedbackForm({
                         label=""
                       />
                     )}
-                    
+
                     {question.type === 'text' && (
                       <Textarea
                         placeholder="Your answer..."
@@ -411,7 +411,7 @@ export default function FeedbackForm({
                         className="min-h-[60px]"
                       />
                     )}
-                    
+
                     {question.type === 'yesNo' && (
                       <RadioGroup
                         value={customAnswers.find(a => a.questionId === question.id)?.answer as string || ''}
@@ -427,7 +427,7 @@ export default function FeedbackForm({
                         </div>
                       </RadioGroup>
                     )}
-                    
+
                     {question.type === 'multipleChoice' && question.options && (
                       <RadioGroup
                         value={customAnswers.find(a => a.questionId === question.id)?.answer as string || ''}

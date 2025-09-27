@@ -115,19 +115,34 @@ const Page = async ({ params }: Props) => {
 				{user && event.organizer._id === user._id && (
 					<div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-6">
 						<h3 className="text-lg font-semibold text-gray-800 mb-3">Event Management</h3>
-						<div className="flex flex-wrap gap-3">
+						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
 							<Link href={`/event/${event._id}/update`}>
-								<button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+								<button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
 									Edit Event
 								</button>
 							</Link>
 							<Link href={`/event/${event._id}/attendees`}>
-								<button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+								<button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
 									Manage Attendees
 								</button>
 							</Link>
+							<Link href={`/event/${event._id}/stakeholders`}>
+								<button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
+									Stakeholders
+								</button>
+							</Link>
+							<Link href={`/event/${event._id}/certificates`}>
+								<button className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
+									Certificates
+								</button>
+							</Link>
+							<Link href={`/event/${event._id}/gallery`}>
+								<button className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
+									Photo Gallery
+								</button>
+							</Link>
 							<Link href={`/event/${event._id}/report`}>
-								<button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+								<button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
 									Generate Report
 								</button>
 							</Link>

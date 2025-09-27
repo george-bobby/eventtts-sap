@@ -14,6 +14,8 @@ export default authMiddleware({
 		'/api/feedback/submit',
 		'/api/cron/feedback-emails',
 		'/track',
+		'/gallery/:shareableLink',
+		'/api/gallery/:galleryId/public',
 	],
 	ignoredRoutes: [
 		'/api/webhook/clerk',
