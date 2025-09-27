@@ -1,5 +1,6 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { auth } from '@clerk/nextjs';
+import { headers } from 'next/headers';
 
 const f = createUploadthing();
 
@@ -8,7 +9,9 @@ export const ourFileRouter = {
 	// Define as many FileRoutes as you like, each with a unique routeSlug
 	imageUploader: f({ image: { maxFileSize: '4MB' } })
 		// Set permissions and file types for this FileRoute
-		.middleware(async ({ req }) => {
+		.middleware(async () => {
+			// Ensure headers are awaited for Next.js 15 compatibility
+			await headers();
 			// This code runs on your server before upload
 			const authResult = await auth();
 			const { userId } = authResult;

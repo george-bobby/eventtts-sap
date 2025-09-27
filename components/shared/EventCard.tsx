@@ -59,16 +59,22 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false }: Pro
 
       {/* Organizer buttons - different layout for profile page vs other pages */}
       {isOrganizer && page === "profile" && (
-        <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100">
+        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100">
+          <Button asChild size="sm" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
+            <Link href={`/event/${event._id}/plan`}>🎯 Plan</Link>
+          </Button>
           <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700">
             <Link href={`/event/${event._id}/manage`}>Manage</Link>
           </Button>
         </div>
       )}
 
-      {/* Edit, Attendees, and AI Report buttons for organizer on non-profile pages */}
+      {/* Edit, Attendees, Plan, and AI Report buttons for organizer on non-profile pages */}
       {isOrganizer && page !== "profile" && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100">
+          <Button asChild size="sm" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
+            <Link href={`/event/${event._id}/plan`}>🎯 Plan</Link>
+          </Button>
           <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
             <Link href={`/event/${event._id}/update`}>Edit</Link>
           </Button>
