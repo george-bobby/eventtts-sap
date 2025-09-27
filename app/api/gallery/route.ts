@@ -12,7 +12,8 @@ import { getUserByClerkId } from '@/lib/actions/user.action';
  */
 export async function GET(request: NextRequest) {
 	try {
-		const { userId } = await auth();
+		const authResult = await auth();
+		const { userId } = authResult;
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
@@ -50,7 +51,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
 	try {
-		const { userId } = await auth();
+		const authResult = await auth();
+		const { userId } = authResult;
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}

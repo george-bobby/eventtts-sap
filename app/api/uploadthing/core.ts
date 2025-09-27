@@ -10,7 +10,8 @@ export const ourFileRouter = {
 		// Set permissions and file types for this FileRoute
 		.middleware(async ({ req }) => {
 			// This code runs on your server before upload
-			const { userId } = await auth();
+			const authResult = await auth();
+			const { userId } = authResult;
 
 			// If you throw, the user will not be able to upload
 			if (!userId) throw new Error('Unauthorized');
@@ -34,7 +35,8 @@ export const ourFileRouter = {
 		image: { maxFileSize: '8MB' },
 	})
 		.middleware(async ({ req }) => {
-			const { userId } = await auth();
+			const authResult = await auth();
+			const { userId } = authResult;
 			if (!userId) throw new Error('Unauthorized');
 			return { userId, uploadType: 'certificate-template' };
 		})
@@ -52,7 +54,8 @@ export const ourFileRouter = {
 		image: { maxFileSize: '8MB', maxFileCount: 50 },
 	})
 		.middleware(async ({ req }) => {
-			const { userId } = await auth();
+			const authResult = await auth();
+			const { userId } = authResult;
 			if (!userId) throw new Error('Unauthorized');
 			return { userId, uploadType: 'photo-gallery' };
 		})
@@ -71,7 +74,8 @@ export const ourFileRouter = {
 		'application/vnd.ms-excel': { maxFileSize: '2MB' },
 	})
 		.middleware(async ({ req }) => {
-			const { userId } = await auth();
+			const authResult = await auth();
+			const { userId } = authResult;
 			if (!userId) throw new Error('Unauthorized');
 			return { userId, uploadType: 'stakeholder-data' };
 		})

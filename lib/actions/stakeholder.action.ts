@@ -1,5 +1,6 @@
 'use server';
 
+import mongoose from 'mongoose';
 import { connectToDatabase } from '../dbconnection';
 import { Stakeholder, StakeholderImport } from '../models/stakeholder.model';
 import Event from '../models/event.model';
@@ -43,7 +44,7 @@ export async function createStakeholder(params: CreateStakeholderParams) {
 
     // Check if stakeholder already exists for this event
     const existingStakeholder = await Stakeholder.findOne({
-      event: params.eventId,
+      event: new mongoose.Types.ObjectId(params.eventId),
       email: params.email,
     });
 
@@ -56,6 +57,7 @@ export async function createStakeholder(params: CreateStakeholderParams) {
 
     const stakeholder = await Stakeholder.create({
       ...params,
+      event: new mongoose.Types.ObjectId(params.eventId),
       user: existingUser?._id,
     });
 
@@ -78,7 +80,7 @@ export async function getEventStakeholders(eventId: string, filters?: {
   try {
     await connectToDatabase();
 
-    let query: any = { event: eventId };
+    let query: any = { event: new mongoose.Types.ObjectId(eventId) };
 
     if (filters?.role) {
       query.role = filters.role;
@@ -296,7 +298,7 @@ export async function getStakeholderImports(eventId: string) {
   try {
     await connectToDatabase();
 
-    const imports = await StakeholderImport.find({ event: eventId })
+    const imports = await StakeholderImport.find({ event: new mongoose.Types.ObjectId(eventId) })
       .populate('importedBy', 'firstName lastName email')
       .sort({ createdAt: -1 });
 
@@ -315,36 +317,40 @@ export async function getStakeholderStats(eventId: string) {
     await connectToDatabase();
 
     const stats = await Stakeholder.aggregate([
-      { $match: { event: eventId } },
+      { $match: { event: new mongoose.Types.ObjectId(eventId) } },
       {
         $group: {
           _id: null,
           total: { $sum: 1 },
-          byRole: {
-            $push: {
-              role: '$role',
-              count: 1,
-            },
-          },
-          byAttendanceStatus: {
-            $push: {
-              status: '$attendanceStatus',
-              count: 1,
-            },
-          },
           certificatesGenerated: {
             $sum: { $cond: ['$certificateGenerated', 1, 0] },
+          },
+          attendedCount: {
+            $sum: { $cond: [{ $eq: ['$attendanceStatus', 'attended'] }, 1, 0] },
+          },
+          noShowCount: {
+            $sum: { $cond: [{ $eq: ['$attendanceStatus', 'no-show'] }, 1, 0] },
+          },
+          registeredCount: {
+            $sum: { $cond: [{ $eq: ['$attendanceStatus', 'registered'] }, 1, 0] },
+          },
+          cancelledCount: {
+            $sum: { $cond: [{ $eq: ['$attendanceStatus', 'cancelled'] }, 1, 0] },
           },
         },
       },
     ]);
 
-    return stats[0] || {
+    const result = stats[0] || {
       total: 0,
-      byRole: [],
-      byAttendanceStatus: [],
       certificatesGenerated: 0,
+      attendedCount: 0,
+      noShowCount: 0,
+      registeredCount: 0,
+      cancelledCount: 0,
     };
+
+    return JSON.parse(JSON.stringify(result));
   } catch (error) {
     console.error('Error getting stakeholder stats:', error);
     throw error;

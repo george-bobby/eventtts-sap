@@ -65,6 +65,7 @@ export default async function FeedbackManagementPage({ params }: FeedbackManagem
           eventId={id}
           eventTitle={event.title}
           isOrganizer={true}
+          isOnline={event.isOnline}
         />
       </div>
     </div>

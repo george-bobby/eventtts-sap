@@ -6,17 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Star, 
-  MessageCircle, 
-  TrendingUp, 
-  Users, 
+import {
+  Star,
+  MessageCircle,
+  TrendingUp,
+  Users,
   BarChart3,
   Download,
   RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { IFeedbackAnalytics } from '@/types';
+import FeedbackFormEditor from './FeedbackFormEditor';
 
 interface FeedbackResponse {
   _id: string;
@@ -41,6 +42,7 @@ interface FeedbackManagementProps {
   eventId: string;
   eventTitle: string;
   isOrganizer: boolean;
+  isOnline?: boolean;
 }
 
 const StarDisplay = ({ rating, maxStars = 5 }: { rating: number; maxStars?: number }) => {
@@ -49,9 +51,8 @@ const StarDisplay = ({ rating, maxStars = 5 }: { rating: number; maxStars?: numb
       {[...Array(maxStars)].map((_, i) => (
         <Star
           key={i}
-          className={`w-4 h-4 ${
-            i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-          }`}
+          className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+            }`}
         />
       ))}
       <span className="ml-2 text-sm font-medium">{rating.toFixed(1)}</span>
@@ -62,7 +63,7 @@ const StarDisplay = ({ rating, maxStars = 5 }: { rating: number; maxStars?: numb
 const NPSBadge = ({ score }: { score: number }) => {
   let color = 'bg-red-100 text-red-800';
   let label = 'Detractor';
-  
+
   if (score >= 9) {
     color = 'bg-green-100 text-green-800';
     label = 'Promoter';
@@ -70,7 +71,7 @@ const NPSBadge = ({ score }: { score: number }) => {
     color = 'bg-yellow-100 text-yellow-800';
     label = 'Passive';
   }
-  
+
   return (
     <Badge className={color}>
       {score}/10 - {label}
@@ -78,10 +79,11 @@ const NPSBadge = ({ score }: { score: number }) => {
   );
 };
 
-export default function FeedbackManagement({ 
-  eventId, 
-  eventTitle, 
-  isOrganizer 
+export default function FeedbackManagement({
+  eventId,
+  eventTitle,
+  isOrganizer,
+  isOnline = false
 }: FeedbackManagementProps) {
   const [analytics, setAnalytics] = useState<IFeedbackAnalytics | null>(null);
   const [responses, setResponses] = useState<FeedbackResponse[]>([]);
@@ -92,17 +94,17 @@ export default function FeedbackManagement({
 
   const fetchFeedbackData = async () => {
     if (!isOrganizer) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch(
         `/api/feedback/responses/${eventId}?page=${currentPage}&analytics=true`
       );
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch feedback data');
       }
-      
+
       const data = await response.json();
       setResponses(data.responses);
       setAnalytics(data.analytics);
@@ -237,6 +239,7 @@ export default function FeedbackManagement({
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="responses">Individual Responses</TabsTrigger>
+          <TabsTrigger value="edit">Edit Form</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -287,9 +290,9 @@ export default function FeedbackManagement({
                     {analytics.npsScore >= 0 && analytics.npsScore < 50 && "Good"}
                     {analytics.npsScore < 0 && "Needs Improvement"}
                   </div>
-                  <Progress 
-                    value={Math.max(0, (analytics.npsScore + 100) / 2)} 
-                    className="mb-2" 
+                  <Progress
+                    value={Math.max(0, (analytics.npsScore + 100) / 2)}
+                    className="mb-2"
                   />
                   <p className="text-xs text-gray-500">
                     NPS ranges from -100 to +100
@@ -308,8 +311,8 @@ export default function FeedbackManagement({
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className="font-semibold">
-                        {response.isAnonymous 
-                          ? 'Anonymous Feedback' 
+                        {response.isAnonymous
+                          ? 'Anonymous Feedback'
                           : `${response.user?.firstName} ${response.user?.lastName}`
                         }
                       </h4>
@@ -392,6 +395,14 @@ export default function FeedbackManagement({
               </Button>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="edit">
+          <FeedbackFormEditor
+            eventId={eventId}
+            eventTitle={eventTitle}
+            isOnline={isOnline}
+          />
         </TabsContent>
       </Tabs>
     </div>
