@@ -11,11 +11,11 @@ import {
  */
 export async function GET(
 	request: NextRequest,
-	context: { params: { stakeholderId: string } }
+	context: { params: Promise<{ stakeholderId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
-		const { userId } = auth();
+		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
@@ -43,11 +43,11 @@ export async function GET(
  */
 export async function PUT(
 	request: NextRequest,
-	context: { params: { stakeholderId: string } }
+	context: { params: Promise<{ stakeholderId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
-		const { userId } = auth();
+		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
@@ -81,11 +81,11 @@ export async function PUT(
  */
 export async function DELETE(
 	request: NextRequest,
-	context: { params: { stakeholderId: string } }
+	context: { params: Promise<{ stakeholderId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
-		const { userId } = auth();
+		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}

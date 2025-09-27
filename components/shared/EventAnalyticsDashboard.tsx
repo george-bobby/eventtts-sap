@@ -92,7 +92,7 @@ export default function EventAnalyticsDashboard({ eventId, event, organizerId }:
         setFeedbackAnalytics(feedbackResponse.analytics);
       }
 
-      if (issueResponse.success) {
+      if (issueResponse.success && issueResponse.analytics) {
         setIssueAnalytics(issueResponse.analytics);
       }
 

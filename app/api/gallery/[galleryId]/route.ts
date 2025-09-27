@@ -12,9 +12,9 @@ import {
  */
 export async function GET(
 	request: NextRequest,
-	context: { params: { galleryId: string } }
+	context: { params: Promise<{ galleryId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
 		const { userId } = await auth();
 		const { searchParams } = new URL(request.url);
@@ -72,9 +72,9 @@ export async function GET(
  */
 export async function POST(
 	request: NextRequest,
-	context: { params: { galleryId: string } }
+	context: { params: Promise<{ galleryId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
 		const { userId } = await auth();
 		if (!userId) {
