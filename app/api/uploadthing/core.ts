@@ -1,8 +1,7 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
+import { auth } from '@clerk/nextjs';
 
 const f = createUploadthing();
-
-const auth = (req: Request) => ({ id: 'fakeId' }); // Fake auth function
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
@@ -11,13 +10,13 @@ export const ourFileRouter = {
 		// Set permissions and file types for this FileRoute
 		.middleware(async ({ req }) => {
 			// This code runs on your server before upload
-			const user = await auth(req);
+			const { userId } = await auth();
 
 			// If you throw, the user will not be able to upload
-			if (!user) throw new Error('Unauthorized');
+			if (!userId) throw new Error('Unauthorized');
 
 			// Whatever is returned here is accessible in onUploadComplete as `metadata`
-			return { userId: user.id };
+			return { userId };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
 			// This code RUNS ON YOUR SERVER after upload
@@ -35,9 +34,9 @@ export const ourFileRouter = {
 		image: { maxFileSize: '8MB' },
 	})
 		.middleware(async ({ req }) => {
-			const user = await auth(req);
-			if (!user) throw new Error('Unauthorized');
-			return { userId: user.id, uploadType: 'certificate-template' };
+			const { userId } = await auth();
+			if (!userId) throw new Error('Unauthorized');
+			return { userId, uploadType: 'certificate-template' };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
 			console.log(
@@ -53,9 +52,9 @@ export const ourFileRouter = {
 		image: { maxFileSize: '10MB', maxFileCount: 50 },
 	})
 		.middleware(async ({ req }) => {
-			const user = await auth(req);
-			if (!user) throw new Error('Unauthorized');
-			return { userId: user.id, uploadType: 'photo-gallery' };
+			const { userId } = await auth();
+			if (!userId) throw new Error('Unauthorized');
+			return { userId, uploadType: 'photo-gallery' };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
 			console.log('Photo gallery upload complete for userId:', metadata.userId);
@@ -72,9 +71,9 @@ export const ourFileRouter = {
 		'application/vnd.ms-excel': { maxFileSize: '2MB' },
 	})
 		.middleware(async ({ req }) => {
-			const user = await auth(req);
-			if (!user) throw new Error('Unauthorized');
-			return { userId: user.id, uploadType: 'stakeholder-data' };
+			const { userId } = await auth();
+			if (!userId) throw new Error('Unauthorized');
+			return { userId, uploadType: 'stakeholder-data' };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
 			console.log(

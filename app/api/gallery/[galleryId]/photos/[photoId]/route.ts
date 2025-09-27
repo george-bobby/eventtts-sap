@@ -11,8 +11,9 @@ import {
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { galleryId: string; photoId: string } }
+  context: { params: { galleryId: string; photoId: string } }
 ) {
+  const { params } = context;
   try {
     const { userId } = auth();
     if (!userId) {
@@ -48,8 +49,9 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { galleryId: string; photoId: string } }
+  context: { params: { galleryId: string; photoId: string } }
 ) {
+  const { params } = context;
   try {
     const { userId } = auth();
     if (!userId) {
@@ -79,8 +81,9 @@ export async function DELETE(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { galleryId: string; photoId: string } }
+  context: { params: { galleryId: string; photoId: string } }
 ) {
+  const { params } = context;
   try {
     const body = await request.json();
     const { action } = body;
