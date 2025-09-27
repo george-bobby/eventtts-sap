@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
     console.log('Feedback email processing completed:', result);
 
     return NextResponse.json({
-      success: true,
+      success: result.success,
       message: 'Feedback emails processed successfully',
-      ...result
+      processed: result.processed
     });
 
   } catch (error) {
