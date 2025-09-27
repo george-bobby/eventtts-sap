@@ -9,6 +9,10 @@ import User from '../models/user.model';
 import Order from '../models/order.model';
 import { Types, Document, FilterQuery } from 'mongoose';
 import { getEventStatistics } from './order.action';
+import {
+	createFeedbackTemplate,
+	scheduleFeedbackEmails,
+} from './feedback.action';
 
 // -------------------------------
 // TYPES
@@ -66,8 +70,25 @@ export async function createEvent(eventData: any) {
 		);
 		data.tags = tagIds;
 
-		const { subEvents, ...mainEventData } = data;
+		const { subEvents, customQuestions, ...mainEventData } = data;
 		const mainEvent = await Event.create(mainEventData);
+
+		// Create feedback template if feedback is enabled
+		if (mainEventData.feedbackEnabled && customQuestions) {
+			try {
+				await createFeedbackTemplate({
+					eventId: mainEvent._id.toString(),
+					customQuestions: customQuestions || [],
+					feedbackHours: mainEventData.feedbackHours || 2,
+				});
+
+				// Schedule feedback emails
+				await scheduleFeedbackEmails(mainEvent._id.toString());
+			} catch (feedbackError) {
+				console.error('Error setting up feedback for event:', feedbackError);
+				// Don't fail the entire event creation if feedback setup fails
+			}
+		}
 
 		if (subEvents?.length > 0) {
 			const subEventIds = [];
