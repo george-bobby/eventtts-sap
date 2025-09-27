@@ -73,7 +73,6 @@ export async function createQRCode(params: CreateQRCodeParams) {
     const qrCodeImage = await qrcode.toDataURL(qrCodeData, {
       errorCorrectionLevel: 'M',
       type: 'image/png',
-      quality: 0.92,
       margin: 1,
       color: {
         dark: '#000000',
