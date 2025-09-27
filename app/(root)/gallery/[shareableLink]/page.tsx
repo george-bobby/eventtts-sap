@@ -3,28 +3,30 @@ import { notFound } from 'next/navigation';
 import PublicGalleryView from '@/components/gallery/PublicGalleryView';
 
 interface PublicGalleryPageProps {
-  params: {
+  params: Promise<{
     shareableLink: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     category?: string;
     tags?: string;
     search?: string;
     page?: string;
-  };
+  }>;
 }
 
-export default async function PublicGalleryPage({ 
-  params, 
-  searchParams 
+export default async function PublicGalleryPage({
+  params,
+  searchParams
 }: PublicGalleryPageProps) {
+  const { shareableLink } = await params;
+  const searchFilters = await searchParams;
   try {
     // First, find the gallery by shareable link
     const { PhotoGallery } = await import('@/lib/models/gallery.model');
     await import('@/lib/dbconnection').then(db => db.connectToDatabase());
-    
-    const gallery = await PhotoGallery.findOne({ 
-      shareableLink: params.shareableLink 
+
+    const gallery = await PhotoGallery.findOne({
+      shareableLink: shareableLink
     }).populate('event', 'title description startDate endDate');
 
     if (!gallery) {
@@ -46,13 +48,13 @@ export default async function PublicGalleryPage({
     }
 
     // Get photos with filters
-    const page = parseInt(searchParams.page || '1');
-    const tags = searchParams.tags?.split(',').filter(Boolean);
-    
+    const page = parseInt(searchFilters.page || '1');
+    const tags = searchFilters.tags?.split(',').filter(Boolean);
+
     const photosData = await getGalleryPhotos(gallery._id, {
-      category: searchParams.category,
+      category: searchFilters.category,
       tags,
-      search: searchParams.search,
+      search: searchFilters.search,
       page,
       limit: 24,
     });
@@ -63,10 +65,10 @@ export default async function PublicGalleryPage({
           gallery={JSON.parse(JSON.stringify(gallery))}
           photosData={photosData}
           filters={{
-            category: searchParams.category,
-            tags: searchParams.tags,
-            search: searchParams.search,
-            page: searchParams.page,
+            category: searchFilters.category,
+            tags: searchFilters.tags,
+            search: searchFilters.search,
+            page: searchFilters.page,
           }}
         />
       </div>

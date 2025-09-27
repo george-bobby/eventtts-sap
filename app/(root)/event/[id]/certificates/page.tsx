@@ -6,12 +6,13 @@ import { getUserByClerkId } from '@/lib/actions/user.action';
 import CertificateManagement from '@/components/certificates/CertificateManagement';
 
 interface CertificatesPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function CertificatesPage({ params }: CertificatesPageProps) {
+  const { id } = await params;
   const { userId } = auth();
 
   if (!userId) {
@@ -24,8 +25,8 @@ export default async function CertificatesPage({ params }: CertificatesPageProps
 
     // Fetch certificate templates and stakeholders in parallel
     const [templates, stakeholders] = await Promise.all([
-      getCertificateTemplates(params.id, user?._id),
-      getEventStakeholders(params.id),
+      getCertificateTemplates(id, user?._id),
+      getEventStakeholders(id),
     ]);
 
     return (
@@ -38,7 +39,7 @@ export default async function CertificatesPage({ params }: CertificatesPageProps
         </div>
 
         <CertificateManagement
-          eventId={params.id}
+          eventId={id}
           templates={templates}
           stakeholders={stakeholders}
         />

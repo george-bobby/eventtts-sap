@@ -4,22 +4,24 @@ import { getEventStakeholders, getStakeholderStats } from '@/lib/actions/stakeho
 import StakeholderManagement from '@/components/stakeholders/StakeholderManagement';
 
 interface StakeholdersPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     role?: string;
     attendanceStatus?: string;
     search?: string;
-  };
+  }>;
 }
 
-export default async function StakeholdersPage({ 
-  params, 
-  searchParams 
+export default async function StakeholdersPage({
+  params,
+  searchParams
 }: StakeholdersPageProps) {
+  const { id } = await params;
+  const searchFilters = await searchParams;
   const { userId } = auth();
-  
+
   if (!userId) {
     redirect('/sign-in');
   }
@@ -27,12 +29,12 @@ export default async function StakeholdersPage({
   try {
     // Fetch stakeholders and stats in parallel
     const [stakeholders, stats] = await Promise.all([
-      getEventStakeholders(params.id, {
-        role: searchParams.role,
-        attendanceStatus: searchParams.attendanceStatus,
-        search: searchParams.search,
+      getEventStakeholders(id, {
+        role: searchFilters.role,
+        attendanceStatus: searchFilters.attendanceStatus,
+        search: searchFilters.search,
       }),
-      getStakeholderStats(params.id),
+      getStakeholderStats(id),
     ]);
 
     return (
@@ -45,13 +47,13 @@ export default async function StakeholdersPage({
         </div>
 
         <StakeholderManagement
-          eventId={params.id}
+          eventId={id}
           stakeholders={stakeholders}
           stats={stats}
           filters={{
-            role: searchParams.role,
-            attendanceStatus: searchParams.attendanceStatus,
-            search: searchParams.search,
+            role: searchFilters.role,
+            attendanceStatus: searchFilters.attendanceStatus,
+            search: searchFilters.search,
           }}
         />
       </div>

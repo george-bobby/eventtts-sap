@@ -29,7 +29,7 @@ const NavigationMap = dynamic(() => import('@/components/shared/NavigationMap').
 const GPSSettings = dynamic(() => import('@/components/shared/GPSSettings'), { ssr: false });
 const PredictionBreakdown = dynamic(() => import('@/components/shared/PredictionBreakdown'), { ssr: false });
 import CameraDiagnostics from '@/components/shared/CameraDiagnostics';
-import CampusLocationsSection from '@/components/shared/CampusLocationsSection';
+// import CampusLocationsSection from '@/components/shared/CampusLocationsSection';
 
 type LocationState = 'detection' | 'destination' | 'navigation';
 type DetectionMethod = 'upload' | 'live';
@@ -577,9 +577,9 @@ export default function LocationDetection() {
         />
       </div>
 
-      <div className="mt-16 pt-8 border-t">
+      {/* <div className="mt-16 pt-8 border-t">
         <CampusLocationsSection />
-      </div>
+      </div> */}
     </section>
 
   );

@@ -104,11 +104,11 @@ const Footer = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-gray-300">
                   <Mail className="w-4 h-4 text-red-400" />
-                  <span className="text-sm">events@christuniversity.in</span>
+                  <span className="text-sm">hello@eventtts.com</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-300">
                   <Phone className="w-4 h-4 text-red-400" />
-                  <span className="text-sm">+91 80 4012 9000</span>
+                  <span className="text-sm">+91 1234567890</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-300">
                   <MapPin className="w-4 h-4 text-red-400" />
@@ -159,7 +159,7 @@ const Footer = () => {
           <div className="container mx-auto px-6 py-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-6">
-                <Link href="https://christuniversity.in/" className="group">
+                <Link href="https://sap-hackathon-beta.vercel.app/" className="group">
                   <p className="font-bold text-white flex items-center gap-2">
                     <Heart className="w-4 h-4 text-red-400" />
                     © 2025 Eventtts

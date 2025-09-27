@@ -5,24 +5,156 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Images, Eye, Download, Share, Lock, Globe, Users } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Images, Eye, Download, Share, Lock, Globe, Users, Upload, Camera } from 'lucide-react';
+import { useUploadThing } from '@/lib/uploadthing';
+import { useToast } from '@/hooks/use-toast';
 
 interface PhotoGalleryManagementProps {
   eventId: string;
   galleries: any[];
+  eventTitle: string;
+  organizerId: string;
 }
 
 export default function PhotoGalleryManagement({
   eventId,
   galleries,
+  eventTitle,
+  organizerId,
 }: PhotoGalleryManagementProps) {
   const [activeTab, setActiveTab] = useState('galleries');
+  const [isCreateGalleryOpen, setIsCreateGalleryOpen] = useState(false);
+  const [isUploadPhotosOpen, setIsUploadPhotosOpen] = useState(false);
+  const [selectedGallery, setSelectedGallery] = useState<string>('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const { toast } = useToast();
+
+  const { startUpload: startPhotoUpload, isUploading } = useUploadThing(
+    'photoGalleryUploader',
+    {
+      onClientUploadComplete: (res) => {
+        toast({
+          title: "Upload Complete",
+          description: `Successfully uploaded ${res.length} photos`,
+        });
+        setUploadProgress(0);
+        setIsUploadPhotosOpen(false);
+        // Refresh the page to show new photos
+        window.location.reload();
+      },
+      onUploadError: (error: Error) => {
+        toast({
+          title: "Upload Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        setUploadProgress(0);
+      },
+      onUploadProgress: (progress) => {
+        setUploadProgress(progress);
+      },
+    }
+  );
 
   const galleryStats = {
     totalGalleries: galleries.length,
     totalPhotos: galleries.reduce((sum, gallery) => sum + (gallery.photoCount || 0), 0),
     totalViews: galleries.reduce((sum, gallery) => sum + (gallery.viewCount || 0), 0),
     totalDownloads: galleries.reduce((sum, gallery) => sum + (gallery.downloadCount || 0), 0),
+  };
+
+  const handleCreateGallery = async (formData: FormData) => {
+    try {
+      const response = await fetch('/api/gallery', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId,
+          name: formData.get('name'),
+          description: formData.get('description'),
+          visibility: formData.get('visibility'),
+          accessPassword: formData.get('accessPassword'),
+          allowDownload: formData.get('allowDownload') === 'on',
+          allowComments: formData.get('allowComments') === 'on',
+          categories: [],
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Gallery Created",
+          description: "Photo gallery created successfully",
+        });
+        setIsCreateGalleryOpen(false);
+        window.location.reload();
+      } else {
+        throw new Error('Failed to create gallery');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create gallery",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePhotoUpload = async (files: File[]) => {
+    if (!selectedGallery) {
+      toast({
+        title: "No Gallery Selected",
+        description: "Please select a gallery first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Upload files to UploadThing
+      const uploadedFiles = await startPhotoUpload(files);
+
+      if (uploadedFiles) {
+        // Process uploaded files and save to gallery
+        const photos = uploadedFiles.map(file => ({
+          fileName: file.name,
+          originalName: file.name,
+          fileUrl: file.url,
+          fileSize: file.size,
+          mimeType: file.type || 'image/jpeg',
+          dimensions: { width: 800, height: 600 }, // Default dimensions
+          metadata: {
+            caption: '',
+            tags: [],
+            location: '',
+            photographer: '',
+            camera: '',
+          },
+          category: 'general',
+        }));
+
+        // Save photos to the selected gallery
+        const response = await fetch(`/api/gallery/${selectedGallery}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ photos }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save photos to gallery');
+        }
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
   };
 
   const getVisibilityIcon = (visibility: string) => {
@@ -111,10 +243,79 @@ export default function PhotoGalleryManagement({
         <TabsContent value="galleries" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Photo Galleries</h3>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Gallery
-            </Button>
+            <Dialog open={isCreateGalleryOpen} onOpenChange={setIsCreateGalleryOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Gallery
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Gallery</DialogTitle>
+                  <DialogDescription>
+                    Create a new photo gallery for {eventTitle}
+                  </DialogDescription>
+                </DialogHeader>
+                <form action={handleCreateGallery} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Gallery Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="Enter gallery name"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      placeholder="Enter gallery description"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="visibility">Visibility</Label>
+                    <Select name="visibility" defaultValue="public">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select visibility" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">Public</SelectItem>
+                        <SelectItem value="private">Private</SelectItem>
+                        <SelectItem value="restricted">Restricted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="allowDownload"
+                      name="allowDownload"
+                      className="rounded"
+                    />
+                    <Label htmlFor="allowDownload">Allow downloads</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="allowComments"
+                      name="allowComments"
+                      className="rounded"
+                    />
+                    <Label htmlFor="allowComments">Allow comments</Label>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setIsCreateGalleryOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Gallery</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -192,10 +393,82 @@ export default function PhotoGalleryManagement({
         <TabsContent value="upload" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Upload Photos</h3>
-            <Button disabled={galleries.length === 0}>
-              <Plus className="h-4 w-4 mr-2" />
-              Upload Photos
-            </Button>
+            <Dialog open={isUploadPhotosOpen} onOpenChange={setIsUploadPhotosOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={galleries.length === 0}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Photos
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Upload Photos</DialogTitle>
+                  <DialogDescription>
+                    Upload photos to your event gallery using UploadThing
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="gallery-select">Select Gallery</Label>
+                    <Select value={selectedGallery} onValueChange={setSelectedGallery}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a gallery" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {galleries.map((gallery) => (
+                          <SelectItem key={gallery._id} value={gallery._id}>
+                            {gallery.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Upload Photos</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 0) {
+                            handlePhotoUpload(files);
+                          }
+                        }}
+                        className="hidden"
+                        id="photo-upload"
+                      />
+                      <label htmlFor="photo-upload" className="cursor-pointer">
+                        <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-lg font-medium text-gray-900 mb-2">
+                          Click to upload photos
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          PNG, JPG, GIF up to 10MB each (max 50 files)
+                        </p>
+                      </label>
+                    </div>
+
+                    {isUploading && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Uploading...</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {galleries.length === 0 ? (

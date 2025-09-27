@@ -241,6 +241,14 @@ export async function bulkGenerateCertificates(
 			throw new Error('Template not found');
 		}
 
+		// Get event and organizer
+		const event = await Event.findById(template.event._id);
+		const organizer = await User.findById(event?.organizer);
+
+		if (!event || !organizer) {
+			throw new Error('Event or organizer not found');
+		}
+
 		const stakeholders = await Stakeholder.find({
 			_id: { $in: params.stakeholderIds },
 			certificateGenerated: false,
@@ -263,7 +271,9 @@ export async function bulkGenerateCertificates(
 				const certificateUrl = await generateCertificateFile(
 					template,
 					stakeholder,
-					fieldValues
+					fieldValues,
+					event,
+					organizer
 				);
 
 				const certificate = await Certificate.create({
@@ -335,7 +345,7 @@ async function generateCertificateFile(
 	try {
 		if (template.templateType === 'generated') {
 			// Generate HTML certificate for default templates
-			const htmlContent = generateDefaultCertificateContent(
+			const htmlContent = await generateDefaultCertificateContent(
 				template,
 				stakeholder,
 				event,

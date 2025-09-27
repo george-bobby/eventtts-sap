@@ -3,94 +3,97 @@ import { auth } from '@clerk/nextjs/server';
 import { createIssue } from '@/lib/actions/issue.action';
 
 export async function POST(request: NextRequest) {
-    try {
-        const { userId } = await auth();
-        
-        if (!userId) {
-            return NextResponse.json(
-                { success: false, error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
+	try {
+		const { userId } = await auth();
 
-        const body = await request.json();
-        const {
-            eventId,
-            category,
-            subcategory,
-            severity,
-            title,
-            description,
-            attachments
-        } = body;
+		if (!userId) {
+			return NextResponse.json(
+				{ success: false, error: 'Unauthorized' },
+				{ status: 401 }
+			);
+		}
 
-        // Validate required fields
-        if (!eventId || !category || !title || !description) {
-            return NextResponse.json(
-                { success: false, error: 'Missing required fields' },
-                { status: 400 }
-            );
-        }
+		const body = await request.json();
+		const {
+			eventId,
+			category,
+			subcategory,
+			severity,
+			title,
+			description,
+			attachments,
+		} = body;
 
-        const result = await createIssue({
-            eventId,
-            reportedBy: userId,
-            category,
-            subcategory,
-            severity,
-            title,
-            description,
-            attachments
-        });
+		// Validate required fields
+		if (!eventId || !category || !title || !description) {
+			return NextResponse.json(
+				{ success: false, error: 'Missing required fields' },
+				{ status: 400 }
+			);
+		}
 
-        if (result.success) {
-            return NextResponse.json(result, { status: 201 });
-        } else {
-            return NextResponse.json(result, { status: 400 });
-        }
+		const result = await createIssue({
+			eventId,
+			reportedBy: userId,
+			category,
+			subcategory,
+			severity,
+			title,
+			description,
+			attachments,
+		});
 
-    } catch (error) {
-        console.error('Error in issue API:', error);
-        return NextResponse.json(
-            { success: false, error: 'Internal server error' },
-            { status: 500 }
-        );
-    }
+		if (result.success) {
+			return NextResponse.json(result, { status: 201 });
+		} else {
+			return NextResponse.json(result, { status: 400 });
+		}
+	} catch (error) {
+		console.error('Error in issue API:', error);
+		return NextResponse.json(
+			{ success: false, error: 'Internal server error' },
+			{ status: 500 }
+		);
+	}
 }
 
 export async function GET(request: NextRequest) {
-    try {
-        const { userId } = await auth();
-        
-        if (!userId) {
-            return NextResponse.json(
-                { success: false, error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
+	try {
+		const { userId } = await auth();
 
-        const { searchParams } = new URL(request.url);
-        const eventId = searchParams.get('eventId');
+		if (!userId) {
+			return NextResponse.json(
+				{ success: false, error: 'Unauthorized' },
+				{ status: 401 }
+			);
+		}
 
-        if (!eventId) {
-            return NextResponse.json(
-                { success: false, error: 'Event ID is required' },
-                { status: 400 }
-            );
-        }
+		const { searchParams } = new URL(request.url);
+		const eventId = searchParams.get('eventId');
 
-        // Here you could add logic to get issues for an event
-        // For now, we'll just return a success response
-        return NextResponse.json(
-            { success: true, message: 'Issues endpoint ready' },
-            { status: 200 }
-        );
+		if (!eventId) {
+			return NextResponse.json(
+				{ success: false, error: 'Event ID is required' },
+				{ status: 400 }
+			);
+		}
 
-    } catch (error) {
-        console.error('Error in issue API:', error);
-        return NextResponse.json(
-            { success: false, error: 'Internal server error' },
-            { status: 500 }
-        );
-    }
+		// Import the getIssuesByEvent function
+		const { getIssuesByEvent } = await import('@/lib/actions/issue.action');
+
+		// Get issues for the event
+		const result = await getIssuesByEvent(eventId);
+
+		if (result.success) {
+			return NextResponse.json(result, { status: 200 });
+		} else {
+			return NextResponse.json(result, { status: 400 });
+		}
+	} catch (error) {
+		console.error('Error in issue API:', error);
+		return NextResponse.json(
+			{ success: false, error: 'Internal server error' },
+			{ status: 500 }
+		);
+	}
 }

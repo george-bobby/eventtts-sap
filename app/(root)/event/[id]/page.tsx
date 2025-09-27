@@ -112,7 +112,7 @@ const Page = async ({ params }: Props) => {
 				)}
 
 				{/* Organizer Controls - Only show if current user is the organizer */}
-				{user && event.organizer._id === user._id && (
+				{user && String(event.organizer._id) === String(user._id) && (
 					<div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-6">
 						<h3 className="text-lg font-semibold text-gray-800 mb-3">Event Management</h3>
 						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">

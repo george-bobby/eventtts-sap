@@ -6,379 +6,384 @@ import { ICertificateField } from '../models/certificate.model';
 
 // Default certificate templates configuration
 export const DEFAULT_TEMPLATES = [
-  {
-    name: 'Attendance Certificate',
-    description: 'Standard certificate for event attendees',
-    templateType: 'generated' as const,
-    fields: [
-      {
-        id: 'title',
-        name: 'Certificate Title',
-        type: 'text' as const,
-        x: 50,
-        y: 20,
-        fontSize: 32,
-        fontFamily: 'Arial',
-        color: '#1a365d',
-        required: true,
-      },
-      {
-        id: 'participantName',
-        name: 'Participant Name',
-        type: 'text' as const,
-        x: 50,
-        y: 40,
-        fontSize: 24,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: true,
-      },
-      {
-        id: 'eventName',
-        name: 'Event Name',
-        type: 'text' as const,
-        x: 50,
-        y: 55,
-        fontSize: 18,
-        fontFamily: 'Arial',
-        color: '#4a5568',
-        required: true,
-      },
-      {
-        id: 'eventDate',
-        name: 'Event Date',
-        type: 'date' as const,
-        x: 50,
-        y: 65,
-        fontSize: 14,
-        fontFamily: 'Arial',
-        color: '#718096',
-        required: true,
-      },
-      {
-        id: 'organizerSignature',
-        name: 'Organizer Signature',
-        type: 'text' as const,
-        x: 70,
-        y: 85,
-        fontSize: 12,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: false,
-      },
-    ],
-    defaultValues: {
-      title: 'Certificate of Attendance',
-    },
-  },
-  {
-    name: 'Speaker Certificate',
-    description: 'Certificate for event speakers and presenters',
-    templateType: 'generated' as const,
-    fields: [
-      {
-        id: 'title',
-        name: 'Certificate Title',
-        type: 'text' as const,
-        x: 50,
-        y: 20,
-        fontSize: 32,
-        fontFamily: 'Arial',
-        color: '#744210',
-        required: true,
-      },
-      {
-        id: 'participantName',
-        name: 'Speaker Name',
-        type: 'text' as const,
-        x: 50,
-        y: 40,
-        fontSize: 24,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: true,
-      },
-      {
-        id: 'recognition',
-        name: 'Recognition Text',
-        type: 'text' as const,
-        x: 50,
-        y: 50,
-        fontSize: 16,
-        fontFamily: 'Arial',
-        color: '#4a5568',
-        required: true,
-      },
-      {
-        id: 'eventName',
-        name: 'Event Name',
-        type: 'text' as const,
-        x: 50,
-        y: 60,
-        fontSize: 18,
-        fontFamily: 'Arial',
-        color: '#4a5568',
-        required: true,
-      },
-      {
-        id: 'eventDate',
-        name: 'Event Date',
-        type: 'date' as const,
-        x: 50,
-        y: 70,
-        fontSize: 14,
-        fontFamily: 'Arial',
-        color: '#718096',
-        required: true,
-      },
-      {
-        id: 'organizerSignature',
-        name: 'Organizer Signature',
-        type: 'text' as const,
-        x: 70,
-        y: 85,
-        fontSize: 12,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: false,
-      },
-    ],
-    defaultValues: {
-      title: 'Certificate of Recognition',
-      recognition: 'for outstanding contribution as a speaker',
-    },
-  },
-  {
-    name: 'Volunteer Certificate',
-    description: 'Certificate for event volunteers',
-    templateType: 'generated' as const,
-    fields: [
-      {
-        id: 'title',
-        name: 'Certificate Title',
-        type: 'text' as const,
-        x: 50,
-        y: 20,
-        fontSize: 32,
-        fontFamily: 'Arial',
-        color: '#22543d',
-        required: true,
-      },
-      {
-        id: 'participantName',
-        name: 'Volunteer Name',
-        type: 'text' as const,
-        x: 50,
-        y: 40,
-        fontSize: 24,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: true,
-      },
-      {
-        id: 'appreciation',
-        name: 'Appreciation Text',
-        type: 'text' as const,
-        x: 50,
-        y: 50,
-        fontSize: 16,
-        fontFamily: 'Arial',
-        color: '#4a5568',
-        required: true,
-      },
-      {
-        id: 'eventName',
-        name: 'Event Name',
-        type: 'text' as const,
-        x: 50,
-        y: 60,
-        fontSize: 18,
-        fontFamily: 'Arial',
-        color: '#4a5568',
-        required: true,
-      },
-      {
-        id: 'eventDate',
-        name: 'Event Date',
-        type: 'date' as const,
-        x: 50,
-        y: 70,
-        fontSize: 14,
-        fontFamily: 'Arial',
-        color: '#718096',
-        required: true,
-      },
-      {
-        id: 'organizerSignature',
-        name: 'Organizer Signature',
-        type: 'text' as const,
-        x: 70,
-        y: 85,
-        fontSize: 12,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: false,
-      },
-    ],
-    defaultValues: {
-      title: 'Certificate of Appreciation',
-      appreciation: 'for dedicated volunteer service',
-    },
-  },
-  {
-    name: 'Participation Certificate',
-    description: 'General participation certificate for all roles',
-    templateType: 'generated' as const,
-    fields: [
-      {
-        id: 'title',
-        name: 'Certificate Title',
-        type: 'text' as const,
-        x: 50,
-        y: 20,
-        fontSize: 32,
-        fontFamily: 'Arial',
-        color: '#553c9a',
-        required: true,
-      },
-      {
-        id: 'participantName',
-        name: 'Participant Name',
-        type: 'text' as const,
-        x: 50,
-        y: 40,
-        fontSize: 24,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: true,
-      },
-      {
-        id: 'participantRole',
-        name: 'Participant Role',
-        type: 'text' as const,
-        x: 50,
-        y: 50,
-        fontSize: 16,
-        fontFamily: 'Arial',
-        color: '#4a5568',
-        required: true,
-      },
-      {
-        id: 'eventName',
-        name: 'Event Name',
-        type: 'text' as const,
-        x: 50,
-        y: 60,
-        fontSize: 18,
-        fontFamily: 'Arial',
-        color: '#4a5568',
-        required: true,
-      },
-      {
-        id: 'eventDate',
-        name: 'Event Date',
-        type: 'date' as const,
-        x: 50,
-        y: 70,
-        fontSize: 14,
-        fontFamily: 'Arial',
-        color: '#718096',
-        required: true,
-      },
-      {
-        id: 'organizerSignature',
-        name: 'Organizer Signature',
-        type: 'text' as const,
-        x: 70,
-        y: 85,
-        fontSize: 12,
-        fontFamily: 'Arial',
-        color: '#2d3748',
-        required: false,
-      },
-    ],
-    defaultValues: {
-      title: 'Certificate of Participation',
-    },
-  },
+	{
+		name: 'Attendance Certificate',
+		description: 'Standard certificate for event attendees',
+		templateType: 'generated' as const,
+		fields: [
+			{
+				id: 'title',
+				name: 'Certificate Title',
+				type: 'text' as const,
+				x: 50,
+				y: 20,
+				fontSize: 32,
+				fontFamily: 'Arial',
+				color: '#1a365d',
+				required: true,
+			},
+			{
+				id: 'participantName',
+				name: 'Participant Name',
+				type: 'text' as const,
+				x: 50,
+				y: 40,
+				fontSize: 24,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: true,
+			},
+			{
+				id: 'eventName',
+				name: 'Event Name',
+				type: 'text' as const,
+				x: 50,
+				y: 55,
+				fontSize: 18,
+				fontFamily: 'Arial',
+				color: '#4a5568',
+				required: true,
+			},
+			{
+				id: 'eventDate',
+				name: 'Event Date',
+				type: 'date' as const,
+				x: 50,
+				y: 65,
+				fontSize: 14,
+				fontFamily: 'Arial',
+				color: '#718096',
+				required: true,
+			},
+			{
+				id: 'organizerSignature',
+				name: 'Organizer Signature',
+				type: 'text' as const,
+				x: 70,
+				y: 85,
+				fontSize: 12,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: false,
+			},
+		],
+		defaultValues: {
+			title: 'Certificate of Attendance',
+		},
+	},
+	{
+		name: 'Speaker Certificate',
+		description: 'Certificate for event speakers and presenters',
+		templateType: 'generated' as const,
+		fields: [
+			{
+				id: 'title',
+				name: 'Certificate Title',
+				type: 'text' as const,
+				x: 50,
+				y: 20,
+				fontSize: 32,
+				fontFamily: 'Arial',
+				color: '#744210',
+				required: true,
+			},
+			{
+				id: 'participantName',
+				name: 'Speaker Name',
+				type: 'text' as const,
+				x: 50,
+				y: 40,
+				fontSize: 24,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: true,
+			},
+			{
+				id: 'recognition',
+				name: 'Recognition Text',
+				type: 'text' as const,
+				x: 50,
+				y: 50,
+				fontSize: 16,
+				fontFamily: 'Arial',
+				color: '#4a5568',
+				required: true,
+			},
+			{
+				id: 'eventName',
+				name: 'Event Name',
+				type: 'text' as const,
+				x: 50,
+				y: 60,
+				fontSize: 18,
+				fontFamily: 'Arial',
+				color: '#4a5568',
+				required: true,
+			},
+			{
+				id: 'eventDate',
+				name: 'Event Date',
+				type: 'date' as const,
+				x: 50,
+				y: 70,
+				fontSize: 14,
+				fontFamily: 'Arial',
+				color: '#718096',
+				required: true,
+			},
+			{
+				id: 'organizerSignature',
+				name: 'Organizer Signature',
+				type: 'text' as const,
+				x: 70,
+				y: 85,
+				fontSize: 12,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: false,
+			},
+		],
+		defaultValues: {
+			title: 'Certificate of Recognition',
+			recognition: 'for outstanding contribution as a speaker',
+		},
+	},
+	{
+		name: 'Volunteer Certificate',
+		description: 'Certificate for event volunteers',
+		templateType: 'generated' as const,
+		fields: [
+			{
+				id: 'title',
+				name: 'Certificate Title',
+				type: 'text' as const,
+				x: 50,
+				y: 20,
+				fontSize: 32,
+				fontFamily: 'Arial',
+				color: '#22543d',
+				required: true,
+			},
+			{
+				id: 'participantName',
+				name: 'Volunteer Name',
+				type: 'text' as const,
+				x: 50,
+				y: 40,
+				fontSize: 24,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: true,
+			},
+			{
+				id: 'appreciation',
+				name: 'Appreciation Text',
+				type: 'text' as const,
+				x: 50,
+				y: 50,
+				fontSize: 16,
+				fontFamily: 'Arial',
+				color: '#4a5568',
+				required: true,
+			},
+			{
+				id: 'eventName',
+				name: 'Event Name',
+				type: 'text' as const,
+				x: 50,
+				y: 60,
+				fontSize: 18,
+				fontFamily: 'Arial',
+				color: '#4a5568',
+				required: true,
+			},
+			{
+				id: 'eventDate',
+				name: 'Event Date',
+				type: 'date' as const,
+				x: 50,
+				y: 70,
+				fontSize: 14,
+				fontFamily: 'Arial',
+				color: '#718096',
+				required: true,
+			},
+			{
+				id: 'organizerSignature',
+				name: 'Organizer Signature',
+				type: 'text' as const,
+				x: 70,
+				y: 85,
+				fontSize: 12,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: false,
+			},
+		],
+		defaultValues: {
+			title: 'Certificate of Appreciation',
+			appreciation: 'for dedicated volunteer service',
+		},
+	},
+	{
+		name: 'Participation Certificate',
+		description: 'General participation certificate for all roles',
+		templateType: 'generated' as const,
+		fields: [
+			{
+				id: 'title',
+				name: 'Certificate Title',
+				type: 'text' as const,
+				x: 50,
+				y: 20,
+				fontSize: 32,
+				fontFamily: 'Arial',
+				color: '#553c9a',
+				required: true,
+			},
+			{
+				id: 'participantName',
+				name: 'Participant Name',
+				type: 'text' as const,
+				x: 50,
+				y: 40,
+				fontSize: 24,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: true,
+			},
+			{
+				id: 'participantRole',
+				name: 'Participant Role',
+				type: 'text' as const,
+				x: 50,
+				y: 50,
+				fontSize: 16,
+				fontFamily: 'Arial',
+				color: '#4a5568',
+				required: true,
+			},
+			{
+				id: 'eventName',
+				name: 'Event Name',
+				type: 'text' as const,
+				x: 50,
+				y: 60,
+				fontSize: 18,
+				fontFamily: 'Arial',
+				color: '#4a5568',
+				required: true,
+			},
+			{
+				id: 'eventDate',
+				name: 'Event Date',
+				type: 'date' as const,
+				x: 50,
+				y: 70,
+				fontSize: 14,
+				fontFamily: 'Arial',
+				color: '#718096',
+				required: true,
+			},
+			{
+				id: 'organizerSignature',
+				name: 'Organizer Signature',
+				type: 'text' as const,
+				x: 70,
+				y: 85,
+				fontSize: 12,
+				fontFamily: 'Arial',
+				color: '#2d3748',
+				required: false,
+			},
+		],
+		defaultValues: {
+			title: 'Certificate of Participation',
+		},
+	},
 ];
 
 /**
  * Create default certificate templates for an event
  */
-export async function createDefaultTemplates(eventId: string, createdBy: string) {
-  try {
-    await connectToDatabase();
+export async function createDefaultTemplates(
+	eventId: string,
+	createdBy: string
+) {
+	try {
+		await connectToDatabase();
 
-    const templates = [];
+		const templates = [];
 
-    for (const template of DEFAULT_TEMPLATES) {
-      const existingTemplate = await CertificateTemplate.findOne({
-        event: eventId,
-        name: template.name,
-        templateType: 'generated',
-      });
+		for (const template of DEFAULT_TEMPLATES) {
+			const existingTemplate = await CertificateTemplate.findOne({
+				event: eventId,
+				name: template.name,
+				templateType: 'generated',
+			});
 
-      if (!existingTemplate) {
-        const newTemplate = await CertificateTemplate.create({
-          event: eventId,
-          name: template.name,
-          description: template.description,
-          templateUrl: 'generated', // Special marker for generated templates
-          templateType: 'generated',
-          fields: template.fields,
-          defaultValues: template.defaultValues,
-          isActive: true,
-          createdBy,
-        });
+			if (!existingTemplate) {
+				const newTemplate = await CertificateTemplate.create({
+					event: eventId,
+					name: template.name,
+					description: template.description,
+					templateUrl: 'generated', // Special marker for generated templates
+					templateType: 'generated',
+					fields: template.fields,
+					defaultValues: template.defaultValues,
+					isActive: true,
+					createdBy,
+				});
 
-        templates.push(newTemplate);
-      }
-    }
+				templates.push(newTemplate);
+			}
+		}
 
-    return JSON.parse(JSON.stringify(templates));
-  } catch (error) {
-    console.error('Error creating default templates:', error);
-    throw error;
-  }
+		return JSON.parse(JSON.stringify(templates));
+	} catch (error) {
+		console.error('Error creating default templates:', error);
+		throw error;
+	}
 }
 
 /**
  * Get default template by role
  */
-export function getDefaultTemplateByRole(role: string) {
-  switch (role.toLowerCase()) {
-    case 'speaker':
-      return DEFAULT_TEMPLATES.find(t => t.name === 'Speaker Certificate');
-    case 'volunteer':
-      return DEFAULT_TEMPLATES.find(t => t.name === 'Volunteer Certificate');
-    case 'attendee':
-      return DEFAULT_TEMPLATES.find(t => t.name === 'Attendance Certificate');
-    default:
-      return DEFAULT_TEMPLATES.find(t => t.name === 'Participation Certificate');
-  }
+export async function getDefaultTemplateByRole(role: string) {
+	switch (role.toLowerCase()) {
+		case 'speaker':
+			return DEFAULT_TEMPLATES.find((t) => t.name === 'Speaker Certificate');
+		case 'volunteer':
+			return DEFAULT_TEMPLATES.find((t) => t.name === 'Volunteer Certificate');
+		case 'attendee':
+			return DEFAULT_TEMPLATES.find((t) => t.name === 'Attendance Certificate');
+		default:
+			return DEFAULT_TEMPLATES.find(
+				(t) => t.name === 'Participation Certificate'
+			);
+	}
 }
 
 /**
  * Generate certificate content using default template
  */
-export function generateDefaultCertificateContent(
-  template: any,
-  stakeholder: any,
-  event: any,
-  organizer: any
-): string {
-  const fieldValues: { [key: string]: string } = {
-    ...template.defaultValues,
-    participantName: stakeholder.name,
-    participantRole: stakeholder.role,
-    eventName: event.title,
-    eventDate: new Date(event.startDate).toLocaleDateString(),
-    organizerSignature: `${organizer.firstName} ${organizer.lastName}`,
-  };
+export async function generateDefaultCertificateContent(
+	template: any,
+	stakeholder: any,
+	event: any,
+	organizer: any
+): Promise<string> {
+	const fieldValues: { [key: string]: string } = {
+		...template.defaultValues,
+		participantName: stakeholder.name,
+		participantRole: stakeholder.role,
+		eventName: event.title,
+		eventDate: new Date(event.startDate).toLocaleDateString(),
+		organizerSignature: `${organizer.firstName} ${organizer.lastName}`,
+	};
 
-  // Generate simple HTML certificate
-  return `
+	// Generate simple HTML certificate
+	return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -406,7 +411,10 @@ export function generateDefaultCertificateContent(
         .title { 
           font-size: 48px; 
           font-weight: bold; 
-          color: ${template.fields.find((f: any) => f.id === 'title')?.color || '#1a365d'};
+          color: ${
+						template.fields.find((f: any) => f.id === 'title')?.color ||
+						'#1a365d'
+					};
           margin-bottom: 30px;
           text-transform: uppercase;
           letter-spacing: 2px;
@@ -454,7 +462,11 @@ export function generateDefaultCertificateContent(
         <div class="subtitle">This is to certify that</div>
         <div class="name">${fieldValues.participantName}</div>
         <div class="subtitle">
-          ${fieldValues.recognition || fieldValues.appreciation || `has successfully participated as a ${fieldValues.participantRole}`}
+          ${
+						fieldValues.recognition ||
+						fieldValues.appreciation ||
+						`has successfully participated as a ${fieldValues.participantRole}`
+					}
         </div>
         <div class="decoration"></div>
         <div class="event">${fieldValues.eventName}</div>
