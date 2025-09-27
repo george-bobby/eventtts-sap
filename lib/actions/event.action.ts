@@ -57,6 +57,8 @@ export async function createEvent(eventData: any) {
 			data.totalCapacity = -1; // Unlimited capacity
 		}
 		data.ticketsLeft = data.totalCapacity;
+		// Ensure soldOut is set correctly: unlimited capacity events should never be sold out
+		data.soldOut = data.totalCapacity !== -1 && data.totalCapacity <= 0;
 		data.eventType = 'main';
 		data.status = 'published';
 
@@ -404,7 +406,10 @@ export async function getEventById(
 			if (parent) {
 				event.photo = parent.photo || event.photo;
 				event.ticketsLeft = parent.ticketsLeft ?? event.ticketsLeft ?? 0;
-				event.soldOut = parent.soldOut || event.ticketsLeft <= 0;
+				// Fix: Don't mark unlimited capacity events (-1) as sold out
+				event.soldOut =
+					parent.soldOut ||
+					(event.ticketsLeft !== -1 && event.ticketsLeft <= 0);
 				event.price = parent.price;
 				event.isFree = parent.isFree;
 			}
@@ -745,7 +750,7 @@ export async function fixEventCapacities() {
 		await connectToDatabase();
 
 		// Update all events with totalCapacity 0 to unlimited (-1)
-		const result = await Event.updateMany(
+		const result1 = await Event.updateMany(
 			{ totalCapacity: 0 },
 			{
 				$set: {
@@ -756,8 +761,26 @@ export async function fixEventCapacities() {
 			}
 		);
 
-		console.log(`Fixed ${result.modifiedCount} events with 0 capacity`);
-		return result;
+		// Fix events that have unlimited capacity (-1) but are marked as sold out
+		const result2 = await Event.updateMany(
+			{
+				$or: [
+					{ ticketsLeft: -1, soldOut: true },
+					{ totalCapacity: -1, soldOut: true },
+				],
+			},
+			{
+				$set: {
+					soldOut: false,
+				},
+			}
+		);
+
+		console.log(`Fixed ${result1.modifiedCount} events with 0 capacity`);
+		console.log(
+			`Fixed ${result2.modifiedCount} unlimited capacity events marked as sold out`
+		);
+		return { result1, result2 };
 	} catch (error) {
 		console.log(error);
 		throw error;

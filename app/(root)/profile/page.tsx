@@ -90,6 +90,8 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
                 emptyTitle="No event tickets purchased yet"
                 emptyStateSubtext="No worries - plenty of exciting events to explore!"
                 user={mongoUser}
+                page="profile"
+                isBookedEvent={true}
               />
             </div>
           </section>

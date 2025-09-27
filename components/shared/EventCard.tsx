@@ -5,8 +5,10 @@ import { dateConverter, timeFormatConverter } from "@/lib/utils";
 import Link from "next/link";
 import LikeCartButton from "./LikeCartButton";
 import DeleteEventButton from "./DeleteEventButton";
+import RaiseIssueButton from "./RaiseIssueButton";
 import { Button } from "@/components/ui/button";
 import { EventWithSubEvents } from "@/lib/actions/event.action";
+import { Settings, AlertTriangle } from "lucide-react";
 
 interface Props {
   event: EventWithSubEvents;
@@ -14,9 +16,10 @@ interface Props {
   page?: string;
   user?: any; // The pre-fetched user data
   likedEvent?: boolean; // Whether this event is liked by the current user
+  isBookedEvent?: boolean; // Whether this is a booked event (for tickets section)
 }
 
-const EventCard = ({ event, currentUserId, page, user, likedEvent = false }: Props) => {
+const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBookedEvent = false }: Props) => {
   // Check if current user is the organizer of this event
   const isOrganizer = user && String(event.organizer._id) === String(user._id);
 
@@ -57,12 +60,29 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false }: Pro
         />
       )}
 
-      {/* Organizer buttons - only show Manage button on profile page */}
-      {isOrganizer && page === "profile" && (
-        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100">
-          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700">
-            <Link href={`/event/${event._id}/manage`}>Manage</Link>
+      {/* Hover overlay for organized events on profile page */}
+      {isOrganizer && page === "profile" && !isBookedEvent && (
+        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-lg z-10">
+          <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg border-2 border-white/20">
+            <Link href={`/event/${event._id}/manage`} className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Manage Event
+            </Link>
           </Button>
+        </div>
+      )}
+
+      {/* Hover overlay for booked events on profile page */}
+      {isBookedEvent && currentUserId && page === "profile" && (
+        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-lg z-10">
+          <RaiseIssueButton
+            event={event}
+            currentUserId={currentUserId}
+            variant="default"
+            size="lg"
+            className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-2 shadow-lg border-2 border-white/20"
+            showText={true}
+          />
         </div>
       )}
 

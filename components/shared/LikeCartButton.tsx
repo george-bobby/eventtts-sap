@@ -65,7 +65,8 @@ type CheckoutDialogProps = {
 const CheckoutDialog = ({ event, user, children }: CheckoutDialogProps) => {
   const { toast } = useToast();
   const [totalTickets, setTotalTickets] = useState(1);
-  const maxTickets = event.ticketsLeft ?? 1;
+  // Fix: Handle unlimited capacity (-1) properly
+  const maxTickets = event.ticketsLeft === -1 ? 100 : (event.ticketsLeft ?? 1);
 
   const handleCheckout = async () => {
     if (!user) {
@@ -97,7 +98,8 @@ const CheckoutDialog = ({ event, user, children }: CheckoutDialogProps) => {
           ? targetEvent.ticketsLeft
           : targetEvent.totalCapacity || 0;
 
-      if (availableTickets <= 0) throw new Error("No tickets available");
+      // Fix: Don't block unlimited capacity events (-1)
+      if (availableTickets !== -1 && availableTickets <= 0) throw new Error("No tickets available");
 
       const amount = targetEvent.isFree
         ? 0

@@ -10,9 +10,10 @@ interface EventCardsProps {
   emptyStateSubtext: string;
   page?: string;
   user?: any; // Pre-fetched user data
+  isBookedEvent?: boolean; // Whether these are booked events
 }
 
-const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page, user }: EventCardsProps) => {
+const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page, user, isBookedEvent = false }: EventCardsProps) => {
   if (!events || events.length === 0) {
     return (
       <NoResults
@@ -38,6 +39,7 @@ const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page
             user={user}
             likedEvent={likedEvent}
             page={page}
+            isBookedEvent={isBookedEvent}
           />
         );
       })}

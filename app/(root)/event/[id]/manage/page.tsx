@@ -118,14 +118,14 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       color: 'bg-yellow-500 hover:bg-yellow-600',
       iconColor: 'text-yellow-600'
     },
-    {
-      title: 'Report Issues',
-      description: 'Report technical or event-related issues',
-      icon: Flag,
-      href: `/event/${id}/report-issue`,
-      color: 'bg-red-500 hover:bg-red-600',
-      iconColor: 'text-red-600'
-    },
+    // {
+    //   title: 'Report Issues',
+    //   description: 'Report technical or event-related issues',
+    //   icon: Flag,
+    //   href: `/event/${id}/report-issue`,
+    //   color: 'bg-red-500 hover:bg-red-600',
+    //   iconColor: 'text-red-600'
+    // },
     {
       title: 'Event Updates',
       description: 'Send notifications and updates to attendees',
