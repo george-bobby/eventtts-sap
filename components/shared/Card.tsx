@@ -58,11 +58,11 @@ const Card = ({ event, isOrganizer }: CardProps) => {
     : '...';
 
   return (
-	<div className="group relative flex min-h-[420px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg">
-			<div
-				style={{ backgroundImage: event.imageUrl ? `url(${event.imageUrl})` : 'none' }}
-				className="h-48 w-full bg-gray-200 bg-cover bg-center"
-			/>      {/* ✅ FIX: This will now render correctly when isOrganizer is true */}
+    <div className="group relative flex min-h-[420px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg">
+      <div
+        style={{ backgroundImage: event.imageUrl ? `url(${event.imageUrl})` : 'none' }}
+        className="h-48 w-full bg-gray-200 bg-cover bg-center"
+      />      {/* ✅ FIX: This will now render correctly when isOrganizer is true */}
       {isOrganizer && (
         <div className="absolute right-2 top-2 flex flex-col gap-2 rounded-xl bg-white p-2 shadow-sm transition-all">
           <Link href={`/events/${event._id}/update`}>

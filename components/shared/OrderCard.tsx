@@ -21,7 +21,7 @@ const OrderCard = ({ event, currentUserId }: Props) => {
   // Check if event has navigation capability
   const hasNavigation = event.event.campusLocation;
   const hasReportIssue = currentUserId;
-  
+
   return (
     <div className="border h-auto max-h-[450px] w-96 rounded-md flex flex-col hover:scale-95 transition-all shadow-md relative">
       {event.event.photo && (
@@ -64,7 +64,7 @@ const OrderCard = ({ event, currentUserId }: Props) => {
           <h3 className="text-lg font-semibold line-clamp-2">{event.event.title}</h3>
         </div>
       </Link>
-      
+
       {/* Organizer Badge */}
       <div className="px-3 pb-2">
         <Badge
@@ -87,7 +87,7 @@ const OrderCard = ({ event, currentUserId }: Props) => {
 
         {/* Report Issue Button - available for all booked events */}
         {hasReportIssue && (
-          <RaiseIssueButton 
+          <RaiseIssueButton
             event={event.event}
             currentUserId={currentUserId}
             size="default"
