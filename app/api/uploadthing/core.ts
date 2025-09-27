@@ -37,7 +37,9 @@ export const ourFileRouter = {
 		pdf: { maxFileSize: '8MB' },
 		image: { maxFileSize: '8MB' },
 	})
-		.middleware(async ({ req }) => {
+		.middleware(async () => {
+			// Ensure headers are awaited for Next.js 15 compatibility
+			await headers();
 			const authResult = await auth();
 			const { userId } = authResult;
 			if (!userId) throw new Error('Unauthorized');
@@ -56,7 +58,9 @@ export const ourFileRouter = {
 	photoGalleryUploader: f({
 		image: { maxFileSize: '8MB', maxFileCount: 50 },
 	})
-		.middleware(async ({ req }) => {
+		.middleware(async () => {
+			// Ensure headers are awaited for Next.js 15 compatibility
+			await headers();
 			const authResult = await auth();
 			const { userId } = authResult;
 			if (!userId) throw new Error('Unauthorized');
@@ -76,7 +80,9 @@ export const ourFileRouter = {
 		},
 		'application/vnd.ms-excel': { maxFileSize: '2MB' },
 	})
-		.middleware(async ({ req }) => {
+		.middleware(async () => {
+			// Ensure headers are awaited for Next.js 15 compatibility
+			await headers();
 			const authResult = await auth();
 			const { userId } = authResult;
 			if (!userId) throw new Error('Unauthorized');

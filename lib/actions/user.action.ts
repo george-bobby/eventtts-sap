@@ -6,6 +6,7 @@ import Event from "../models/event.model";
 import Order from "../models/order.model";
 import { redirect } from "next/dist/server/api-utils";
 import { revalidatePath } from "next/cache";
+import { clerkClient } from '@clerk/nextjs';
 export interface CreateUserParams {
 	clerkId: string;
 	email: string;
@@ -31,10 +32,28 @@ export async function createUser(userData: CreateUserParams) {
 export async function getUserByClerkId(clerkId: string) {
 	try {
 		await connectToDatabase();
-		const user = await User.findOne({ clerkId: clerkId });
+		let user = await User.findOne({ clerkId: clerkId });
 
 		if (!user) {
-			throw new Error("User not found");
+			// If user doesn't exist in MongoDB, try to create them from Clerk data
+			try {
+				const clerkUser = await clerkClient.users.getUser(clerkId);
+				
+				const userData = {
+					clerkId: clerkId,
+					email: clerkUser.emailAddresses[0]?.emailAddress || '',
+					username: clerkUser.username || clerkUser.firstName || 'user',
+					firstName: clerkUser.firstName || '',
+					lastName: clerkUser.lastName || '',
+					photo: clerkUser.imageUrl || '',
+				};
+
+				user = await createUser(userData);
+				console.log('Created user from Clerk data:', user._id);
+			} catch (clerkError) {
+				console.error('Failed to fetch user from Clerk or create user:', clerkError);
+				throw new Error("User not found and could not be created");
+			}
 		}
 
 		return JSON.parse(JSON.stringify(user));
