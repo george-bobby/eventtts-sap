@@ -32,7 +32,7 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
   }
 
   // Check if user is the organizer
-  if (event.organizer._id !== user._id) {
+  if (String(event.organizer._id) !== String(user._id)) {
     return <NoResults title="Access Denied" desc="Only the event organizer can access the planning board." link={`/event/${event._id}`} linkTitle="Back to Event" />;
   }
 
