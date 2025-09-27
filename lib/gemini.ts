@@ -126,11 +126,11 @@ Generate ${
 			isSubEvent ? '6-8' : '8-12'
 		} tasks total, distributed across the phases appropriately.`;
 
-		const result = await generateObject({
+		const result = (await generateObject({
 			model: google('gemini-1.5-pro'),
 			schema: TasksResponseSchema,
 			prompt: prompt,
-		}) as { object: TasksResponseType };
+		})) as { object: TasksResponseType };
 
 		// Convert structured response to TaskSuggestion format
 		const tasks: TaskSuggestion[] = result.object.tasks.map((task, index) => ({
