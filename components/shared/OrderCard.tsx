@@ -24,15 +24,17 @@ const OrderCard = ({ event, currentUserId }: Props) => {
   
   return (
     <div className="border h-auto max-h-[450px] w-96 rounded-md flex flex-col hover:scale-95 transition-all shadow-md relative">
-      <Link href={`/event/${event.event._id}`} className="w-full h-48 flex-shrink-0">
-        <Image
-          src={event.event.photo}
-          alt={event.event._id}
-          width={1920}
-          height={1280}
-          className="w-full h-full rounded-t-md hover:opacity-80 transition-all object-cover"
-        />
-      </Link>
+      {event.event.photo && (
+        <Link href={`/event/${event.event._id}`} className="w-full h-48 flex-shrink-0">
+          <Image
+            src={event.event.photo}
+            alt={event.event._id}
+            width={1920}
+            height={1280}
+            className="w-full h-full rounded-t-md hover:opacity-80 transition-all object-cover"
+          />
+        </Link>
+      )}
       <Link
         href={`/event/${event.event._id}`}
         className="p-3 flex flex-col items-start gap-2 flex-1 font-medium"

@@ -56,6 +56,14 @@ export async function createEvent(eventData: any) {
 		data.eventType = 'main';
 		data.status = 'published';
 
+		// Ensure startTime and endTime are provided
+		if (!data.startTime || data.startTime.trim() === '') {
+			data.startTime = '09:00';
+		}
+		if (!data.endTime || data.endTime.trim() === '') {
+			data.endTime = '17:00';
+		}
+
 		const category = await getCategoryByName(data.category);
 		data.category = category._id;
 

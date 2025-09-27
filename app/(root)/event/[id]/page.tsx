@@ -43,16 +43,18 @@ const Page = async ({ params }: Props) => {
 
 	return (
 		<div className="font-medium md:mx-24">
-			<div className="rounded-md md:h-[500px] flex justify-center items-center">
-				<Image
-					src={event.photo}
-					alt={event.title}
-					width={1920}
-					height={1800}
-					priority={true}
-					className="rounded-md w-full h-full object-contain"
-				/>
-			</div>
+			{event.photo && (
+				<div className="rounded-md md:h-[500px] flex justify-center items-center">
+					<Image
+						src={event.photo}
+						alt={event.title}
+						width={1920}
+						height={1800}
+						priority={true}
+						className="rounded-md w-full h-full object-contain"
+					/>
+				</div>
+			)}
 			<div className="flex flex-col gap-5">
 				<h2 className="text-4xl max-sm:text-2xl mt-3">
 					{event.parentEvent ? 'Sub-Event: ' : ''}{event.title}
