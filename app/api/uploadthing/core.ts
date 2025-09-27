@@ -49,7 +49,7 @@ export const ourFileRouter = {
 
 	// Photo gallery uploader (multiple images)
 	photoGalleryUploader: f({
-		image: { maxFileSize: '10MB', maxFileCount: 50 },
+		image: { maxFileSize: '8MB', maxFileCount: 50 },
 	})
 		.middleware(async ({ req }) => {
 			const { userId } = await auth();

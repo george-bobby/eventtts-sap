@@ -11,11 +11,11 @@ import {
  */
 export async function PUT(
 	request: NextRequest,
-	context: { params: { galleryId: string; photoId: string } }
+	context: { params: Promise<{ galleryId: string; photoId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
-		const { userId } = auth();
+		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
@@ -49,11 +49,11 @@ export async function PUT(
  */
 export async function DELETE(
 	request: NextRequest,
-	context: { params: { galleryId: string; photoId: string } }
+	context: { params: Promise<{ galleryId: string; photoId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
-		const { userId } = auth();
+		const { userId } = await auth();
 		if (!userId) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
@@ -81,9 +81,9 @@ export async function DELETE(
  */
 export async function POST(
 	request: NextRequest,
-	context: { params: { galleryId: string; photoId: string } }
+	context: { params: Promise<{ galleryId: string; photoId: string }> }
 ) {
-	const { params } = context;
+	const params = await context.params;
 	try {
 		const body = await request.json();
 		const { action } = body;

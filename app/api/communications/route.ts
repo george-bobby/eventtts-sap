@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
 
 		// Get stakeholders
 		const stakeholders = stakeholderIds
-			? await getEventStakeholders(eventId, {}).then((all) =>
-					all.filter((s) => stakeholderIds.includes(s._id))
+			? await getEventStakeholders(eventId, {}).then((all: any[]) =>
+					all.filter((s: any) => stakeholderIds.includes(s._id))
 			  )
 			: await getEventStakeholders(eventId);
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 			if (galleries.length > 0) {
 				// Use the first public gallery or create a general link
 				const publicGallery =
-					galleries.find((g) => g.visibility === 'public') || galleries[0];
+					galleries.find((g: any) => g.visibility === 'public') || galleries[0];
 				galleryUrl = `${process.env.NEXT_PUBLIC_APP_URL}/gallery/${publicGallery.shareableLink}`;
 			}
 		}
@@ -85,8 +85,8 @@ export async function POST(request: NextRequest) {
 		if (type === 'certificate') {
 			// Send certificate emails
 			const certificateEmails: CertificateEmailData[] = stakeholders
-				.filter((s) => s.certificateGenerated && s.certificateId)
-				.map((stakeholder) => ({
+				.filter((s: any) => s.certificateGenerated && s.certificateId)
+				.map((stakeholder: any) => ({
 					eventTitle: event.title,
 					eventId: event._id,
 					participantName: stakeholder.name,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
 			for (const result of results) {
 				if (result.success) {
 					const stakeholder = stakeholders.find(
-						(s) => s.email === result.email
+						(s: any) => s.email === result.email
 					);
 					if (stakeholder) {
 						await connectToDatabase();
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 		} else if (type === 'thankYou') {
 			// Send thank you emails
 			const thankYouEmails: ThankYouEmailData[] = stakeholders.map(
-				(stakeholder) => ({
+				(stakeholder: any) => ({
 					eventTitle: event.title,
 					eventId: event._id,
 					participantName: stakeholder.name,
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 			for (const result of results) {
 				if (result.success) {
 					const stakeholder = stakeholders.find(
-						(s) => s.email === result.email
+						(s: any) => s.email === result.email
 					);
 					if (stakeholder) {
 						await connectToDatabase();
