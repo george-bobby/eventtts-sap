@@ -8,6 +8,7 @@ import Event from '../models/event.model';
 import { connectToDatabase } from '../dbconnection';
 import { revalidatePath } from 'next/cache';
 import Category from '../models/category.model';
+import Tag from '../models/tag.model';
 
 interface EventReference {
 	_id: string;
@@ -269,6 +270,7 @@ export async function getOrdersByUserId({
 				populate: [
 					{ path: 'organizer', model: User },
 					{ path: 'category', model: Category },
+					{ path: 'tags', model: Tag },
 				],
 			});
 

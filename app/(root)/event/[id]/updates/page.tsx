@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
+import EventUpdatesManagement from '@/components/eventupdates/EventUpdatesManagement';
 
 interface EventUpdatesPageProps {
   params: Promise<{ id: string }>;
@@ -60,17 +61,11 @@ export default async function EventUpdatesPage({ params }: EventUpdatesPageProps
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Event Updates</h2>
-          <p className="text-gray-600 mb-8">
-            This feature is coming soon. You'll be able to send notifications and updates to attendees here.
-          </p>
-          <Button asChild>
-            <Link href={`/event/${id}/manage`}>
-              Return to Dashboard
-            </Link>
-          </Button>
-        </div>
+        <EventUpdatesManagement
+          eventId={id}
+          eventTitle={event.title}
+          organizerId={user._id}
+        />
       </div>
     </div>
   );
