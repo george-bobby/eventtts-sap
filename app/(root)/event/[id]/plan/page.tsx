@@ -47,6 +47,8 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
     location: event.location,
     isOnline: event.isOnline || false,
     totalCapacity: event.totalCapacity || 0,
+    isFree: event.isFree || false,
+    price: event.price || 0,
   };
   let isSubEvent = false;
 
@@ -63,6 +65,8 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
         location: subEvent.location,
         isOnline: subEvent.isOnline || false,
         totalCapacity: subEvent.totalCapacity || 0,
+        isFree: subEvent.isFree || false,
+        price: subEvent.price || 0,
       };
       isSubEvent = true;
     }

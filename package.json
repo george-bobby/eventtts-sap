@@ -9,6 +9,7 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@ai-sdk/google": "^2.0.17",
 		"@clerk/nextjs": "^4.30.0",
 		"@google/generative-ai": "^0.24.1",
 		"@hookform/resolvers": "^5.2.2",
@@ -43,6 +44,7 @@
 		"@types/qrcode": "^1.5.5",
 		"@uploadthing/react": "6.7.2",
 		"@vercel/speed-insights": "^1.0.12",
+		"ai": "^5.0.56",
 		"axios": "^1.12.1",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",

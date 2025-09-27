@@ -37,6 +37,8 @@ interface EventPlannerProps {
     location?: string;
     isOnline?: boolean;
     totalCapacity?: number;
+    isFree?: boolean;
+    price?: number;
   };
   isSubEvent?: boolean;
 }
@@ -113,7 +115,7 @@ const SubtaskList: React.FC<{
 // Priority badge component
 const PriorityBadge: React.FC<{ priority?: 'high' | 'medium' | 'low' }> = ({ priority }) => {
   if (!priority) return null;
-  
+
   const colors = {
     high: 'bg-red-100 text-red-800 border-red-200',
     medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -165,7 +167,7 @@ const TaskCard: React.FC<{
         </div>
         <PriorityBadge priority={task.priority} />
       </div>
-      
+
       {task.estimatedDuration && (
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
           <Clock className="h-3 w-3" />
@@ -177,7 +179,7 @@ const TaskCard: React.FC<{
         <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
           <span>Progress: {completedSubtasks}/{totalSubtasks} subtasks</span>
           <div className="w-16 bg-gray-200 rounded-full h-1 ml-2">
-            <div 
+            <div
               className="bg-blue-600 h-1 rounded-full transition-all duration-300"
               style={{ width: `${totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0}%` }}
             />
@@ -185,9 +187,9 @@ const TaskCard: React.FC<{
         </div>
       )}
 
-      <SubtaskList 
-        taskId={task.id} 
-        subtasks={task.subtasks} 
+      <SubtaskList
+        taskId={task.id}
+        subtasks={task.subtasks}
         onMoveSubtask={onMoveSubtask}
         onToggleSubtask={onToggleSubtask}
       />
@@ -243,10 +245,10 @@ const Column: React.FC<{
         </div>
         <div className="space-y-2">
           {tasks.map((task) => (
-            <TaskCard 
-              key={task.id} 
-              task={task} 
-              onDropTask={onDropTask} 
+            <TaskCard
+              key={task.id}
+              task={task}
+              onDropTask={onDropTask}
               onMoveSubtask={onMoveSubtask}
               onToggleTask={onToggleTask}
               onToggleSubtask={onToggleSubtask}
@@ -268,6 +270,7 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [hasGenerated, setHasGenerated] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const { toast } = useToast();
 
   const storageKey = `eventPlanner_${event._id}`;
@@ -293,11 +296,20 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
     }
   }, [tasks, storageKey]);
 
+  // Auto-generate tasks on initial load if no tasks exist
+  useEffect(() => {
+    if (isInitialLoad && tasks.length === 0 && !hasGenerated && !isGenerating) {
+      setIsInitialLoad(false);
+      handleGenerateTasks();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialLoad, tasks.length, hasGenerated, isGenerating]);
+
   const handleGenerateTasks = async () => {
     setIsGenerating(true);
     try {
       const categoryName = typeof event.category === 'string' ? event.category : event.category.name;
-      
+
       const response = await fetch('/api/generate-tasks', {
         method: 'POST',
         headers: {
@@ -313,7 +325,10 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
             isOnline: event.isOnline,
             capacity: event.totalCapacity,
             startDate: event.startDate,
-            endDate: event.endDate
+            endDate: event.endDate,
+            isFree: event.isFree,
+            price: event.price,
+            category: categoryName
           }
         }),
       });
@@ -323,7 +338,7 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
       }
 
       const { tasks: generatedTasks } = await response.json();
-      
+
       // Convert to our Task format with completion tracking
       const newTasks: Task[] = generatedTasks.map((suggestion: any) => ({
         id: suggestion.id,
@@ -340,7 +355,7 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
       setTasks(newTasks);
       setHasGenerated(true);
-      
+
       toast({
         title: "Tasks Generated Successfully! ✨",
         description: `Generated ${newTasks.length} tasks for ${isSubEvent ? 'sub-event' : 'event'}: "${event.title}".`,
@@ -362,20 +377,20 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
   };
 
   const handleToggleTask = (taskId: string) => {
-    setTasks((prev) => prev.map((task) => 
+    setTasks((prev) => prev.map((task) =>
       task.id === taskId ? { ...task, completed: !task.completed } : task
     ));
   };
 
   const handleToggleSubtask = (taskId: string, subtaskId: string) => {
-    setTasks((prev) => prev.map((task) => 
-      task.id === taskId 
+    setTasks((prev) => prev.map((task) =>
+      task.id === taskId
         ? {
-            ...task,
-            subtasks: task.subtasks.map((sub) =>
-              sub.id === subtaskId ? { ...sub, completed: !sub.completed } : sub
-            )
-          }
+          ...task,
+          subtasks: task.subtasks.map((sub) =>
+            sub.id === subtaskId ? { ...sub, completed: !sub.completed } : sub
+          )
+        }
         : task
     ));
   };
@@ -432,7 +447,7 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
     const total = tasks.length;
     const completed = tasks.filter(task => task.completed).length;
     const totalSubtasks = tasks.reduce((sum, task) => sum + task.subtasks.length, 0);
-    const completedSubtasks = tasks.reduce((sum, task) => 
+    const completedSubtasks = tasks.reduce((sum, task) =>
       sum + task.subtasks.filter(sub => sub.completed).length, 0
     );
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -452,7 +467,7 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
               {isSubEvent ? '📅 Sub-Event' : '🎯 Event'} Planning Board
             </h1>
           </div>
-          
+
           {/* Event Details Card */}
           <Card className="mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
             <CardHeader>
@@ -479,43 +494,17 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
           </Card>
         </div>
 
-        {/* Task Generation Section */}
-        {!hasGenerated && (
-          <Card className="mb-8 border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-900">
-                <Sparkles className="h-5 w-5" />
-                Generate AI-Powered Tasks
-              </CardTitle>
-              <CardDescription>
-                Let AI create a comprehensive task list specifically for your {categoryName.toLowerCase()} {isSubEvent ? 'sub-event' : 'event'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-white rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-gray-800 mb-2">Event Details:</h4>
-                <p className="text-sm text-gray-600 mb-2"><strong>Description:</strong> {event.description}</p>
-                <p className="text-sm text-gray-600"><strong>Duration:</strong> {new Date(event.startDate).toDateString()} - {new Date(event.endDate).toDateString()}</p>
+        {/* Auto-generating tasks indicator */}
+        {isGenerating && (
+          <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center gap-3">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900">Generating AI-Powered Tasks</h3>
+                  <p className="text-blue-700">Creating a personalized task list for your {categoryName.toLowerCase()} event...</p>
+                </div>
               </div>
-              
-              <Button 
-                onClick={handleGenerateTasks} 
-                disabled={isGenerating}
-                className="bg-green-600 hover:bg-green-700 text-white"
-                size="lg"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Tasks...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Tasks for {event.title}
-                  </>
-                )}
-              </Button>
             </CardContent>
           </Card>
         )}
@@ -542,10 +531,10 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
                   <div className="text-sm text-gray-600">Subtasks Done</div>
                 </div>
               </div>
-              
+
               <div className="mt-4">
                 <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300"
                     style={{ width: `${stats.progress}%` }}
                   />

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Flag, Bell, QrCode } from 'lucide-react';
+import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Flag, Bell, QrCode, Target } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
@@ -38,6 +38,14 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
   }
 
   const managementOptions = [
+    {
+      title: 'Plan Event',
+      description: 'AI-powered task planning and management board',
+      icon: Target,
+      href: `/event/${id}/plan`,
+      color: 'bg-purple-500 hover:bg-purple-600',
+      iconColor: 'text-purple-600'
+    },
     {
       title: 'Edit Event',
       description: 'Update event details, description, and settings',
