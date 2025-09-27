@@ -116,6 +116,11 @@ const Page = async ({ params }: Props) => {
 					<div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-6">
 						<h3 className="text-lg font-semibold text-gray-800 mb-3">Event Management</h3>
 						<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+							<Link href={`/event/${event._id}/plan`}>
+								<button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full flex items-center justify-center gap-2">
+									🎯 Plan Event
+								</button>
+							</Link>
 							<Link href={`/event/${event._id}/update`}>
 								<button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
 									Edit Event
