@@ -240,7 +240,7 @@ export async function getEvents({
 			},
 
 			// Sort and paginate
-			{ $sort: { createdAt: -1 } },
+			{ $sort: { createdAt: -1 as -1 } },
 			{ $skip: skipAmount },
 			{ $limit: limit },
 		];
