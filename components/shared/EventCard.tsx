@@ -102,6 +102,21 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false }: Pro
           <Badge variant="secondary">
             {event.landmark ? event.landmark : "Online"}
           </Badge>
+          {/* Display tags */}
+          {event.tags && event.tags.length > 0 && (
+            <>
+              {event.tags.slice(0, 2).map((tag: any) => (
+                <Badge key={tag._id || tag.name} variant="outline" className="text-xs">
+                  {typeof tag === 'object' ? tag.name : tag}
+                </Badge>
+              ))}
+              {event.tags.length > 2 && (
+                <Badge variant="outline" className="text-xs">
+                  +{event.tags.length - 2}
+                </Badge>
+              )}
+            </>
+          )}
         </div>
         <div className="flex flex-col justify-around flex-1">
           <div className="flex flex-wrap gap-1">

@@ -5,6 +5,7 @@ import {
 	getEventPhotoGalleries,
 	uploadPhotos,
 } from '@/lib/actions/gallery.action';
+import { getUserByClerkId } from '@/lib/actions/user.action';
 
 /**
  * GET /api/gallery - Get photo galleries for an event
@@ -54,6 +55,12 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
 
+		// Get MongoDB user ID from Clerk user ID
+		const mongoUser = await getUserByClerkId(userId);
+		if (!mongoUser) {
+			return NextResponse.json({ error: 'User not found' }, { status: 404 });
+		}
+
 		const body = await request.json();
 		const {
 			eventId,
@@ -83,7 +90,7 @@ export async function POST(request: NextRequest) {
 			allowDownload: allowDownload ?? true,
 			allowComments: allowComments ?? true,
 			categories: categories || [],
-			createdBy: userId,
+			createdBy: mongoUser._id, // Use MongoDB user ID instead of Clerk ID
 		});
 
 		return NextResponse.json({

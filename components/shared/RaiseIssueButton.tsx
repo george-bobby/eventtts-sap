@@ -16,13 +16,13 @@ interface RaiseIssueButtonProps {
     showText?: boolean;
 }
 
-export default function RaiseIssueButton({ 
-    event, 
-    currentUserId, 
+export default function RaiseIssueButton({
+    event,
+    currentUserId,
     variant = 'outline',
     size = 'sm',
     className = '',
-    showText = true 
+    showText = true
 }: RaiseIssueButtonProps) {
     const [open, setOpen] = useState(false);
 
@@ -42,18 +42,21 @@ export default function RaiseIssueButton({
                     {showText ? 'Report Issue' : ''}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] p-0 gap-0 mx-auto">
                 <DialogHeader className="sr-only">
                     <DialogTitle>Report an Issue</DialogTitle>
                     <DialogDescription>
                         Report a problem with {event.title}
                     </DialogDescription>
                 </DialogHeader>
-                <IssueReportForm
-                    event={event}
-                    currentUserId={currentUserId}
-                    onClose={handleClose}
-                />
+                <div className="overflow-y-auto max-h-[85vh] p-4 sm:p-6">
+                    <IssueReportForm
+                        event={event}
+                        currentUserId={currentUserId}
+                        onClose={handleClose}
+                        isModal={true}
+                    />
+                </div>
             </DialogContent>
         </Dialog>
     );
