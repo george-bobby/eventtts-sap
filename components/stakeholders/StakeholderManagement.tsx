@@ -249,7 +249,7 @@ export default function StakeholderManagement({
     if (searchTerm) params.set('search', searchTerm);
     if (selectedRole !== 'all') params.set('role', selectedRole);
     if (selectedStatus !== 'all') params.set('attendanceStatus', selectedStatus);
-    
+
     const queryString = params.toString();
     const newUrl = queryString ? `?${queryString}` : '';
     router.push(`/event/${eventId}/stakeholders${newUrl}`);
@@ -265,11 +265,11 @@ export default function StakeholderManagement({
   const filteredStakeholders = stakeholders.filter(stakeholder => {
     const matchesRole = selectedRole === 'all' || stakeholder.role === selectedRole;
     const matchesStatus = selectedStatus === 'all' || stakeholder.attendanceStatus === selectedStatus;
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       stakeholder.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stakeholder.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stakeholder.additionalInfo?.company?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesRole && matchesStatus && matchesSearch;
   });
 
@@ -493,8 +493,8 @@ export default function StakeholderManagement({
                       <Input
                         id="company"
                         value={newStakeholder.additionalInfo.company}
-                        onChange={(e) => setNewStakeholder(prev => ({ 
-                          ...prev, 
+                        onChange={(e) => setNewStakeholder(prev => ({
+                          ...prev,
                           additionalInfo: { ...prev.additionalInfo, company: e.target.value }
                         }))}
                         className="col-span-3"
@@ -507,8 +507,8 @@ export default function StakeholderManagement({
                       <Input
                         id="title"
                         value={newStakeholder.additionalInfo.title}
-                        onChange={(e) => setNewStakeholder(prev => ({ 
-                          ...prev, 
+                        onChange={(e) => setNewStakeholder(prev => ({
+                          ...prev,
                           additionalInfo: { ...prev.additionalInfo, title: e.target.value }
                         }))}
                         className="col-span-3"
@@ -521,8 +521,8 @@ export default function StakeholderManagement({
                       <Input
                         id="phone"
                         value={newStakeholder.additionalInfo.phone}
-                        onChange={(e) => setNewStakeholder(prev => ({ 
-                          ...prev, 
+                        onChange={(e) => setNewStakeholder(prev => ({
+                          ...prev,
                           additionalInfo: { ...prev.additionalInfo, phone: e.target.value }
                         }))}
                         className="col-span-3"
@@ -550,7 +550,7 @@ export default function StakeholderManagement({
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No Stakeholders Found</h3>
                   <p className="text-muted-foreground text-center mb-4">
-                    {stakeholders.length === 0 
+                    {stakeholders.length === 0
                       ? "Add stakeholders manually or import them from a CSV file."
                       : "No stakeholders match your current filters."
                     }
@@ -583,8 +583,8 @@ export default function StakeholderManagement({
                         onCheckedChange={handleSelectAll}
                       />
                       <span className="text-sm font-medium">
-                        {selectedStakeholders.length > 0 
-                          ? `${selectedStakeholders.length} selected` 
+                        {selectedStakeholders.length > 0
+                          ? `${selectedStakeholders.length} selected`
                           : `${filteredStakeholders.length} stakeholders`
                         }
                       </span>
@@ -632,8 +632,8 @@ export default function StakeholderManagement({
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Select 
-                              value={stakeholder.attendanceStatus} 
+                            <Select
+                              value={stakeholder.attendanceStatus}
                               onValueChange={(value) => handleUpdateAttendance(stakeholder._id, value)}
                             >
                               <SelectTrigger className="w-32">
@@ -704,7 +704,7 @@ export default function StakeholderManagement({
                     Choose File
                   </Button>
                 </div>
-                
+
                 <div className="text-sm text-muted-foreground">
                   <p className="font-medium mb-2">Required columns:</p>
                   <ul className="list-disc list-inside space-y-1">
@@ -765,8 +765,8 @@ export default function StakeholderManagement({
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
                               style={{ width: `${percentage}%` }}
                             ></div>
                           </div>
@@ -802,8 +802,8 @@ export default function StakeholderManagement({
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-green-600 h-2 rounded-full" 
+                            <div
+                              className="bg-green-600 h-2 rounded-full"
                               style={{ width: `${percentage}%` }}
                             ></div>
                           </div>
@@ -834,7 +834,7 @@ export default function StakeholderManagement({
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-medium">
-                      {stakeholders.length > 0 
+                      {stakeholders.length > 0
                         ? ((stakeholders.filter(s => s.certificateGenerated).length / stakeholders.length) * 100).toFixed(1)
                         : 0
                       }%
