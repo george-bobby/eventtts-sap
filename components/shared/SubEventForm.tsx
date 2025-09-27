@@ -65,7 +65,7 @@ const SubEventForm = ({ index }: Props) => {
           name={`subEvents.${index}.photo`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Photo</FormLabel>
+              <FormLabel>Photo (Optional)</FormLabel>
               <FormControl>
                 <FileUploader
                   onFieldChange={field.onChange}

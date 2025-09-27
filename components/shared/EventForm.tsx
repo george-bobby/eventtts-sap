@@ -73,7 +73,7 @@ const formSchema = z.object({
 	tags: z.array(z.string().min(2, { message: "Tag must be at least 2 characters." }))
 		.min(1, { message: "At least one tag is required." }),
 	description: z.string().trim().min(2, { message: "Description must be at least 2 characters." }),
-	photo: z.string(),
+	photo: z.string().optional(),
 	isOnline: z.boolean().optional(),
 	location: z.string().trim().optional(),
 	landmark: z.string().trim().optional(),
@@ -102,7 +102,7 @@ interface IEvent {
 	category: any;
 	tags: any[];
 	description: string;
-	photo: string;
+	photo?: string;
 	isOnline?: boolean;
 	location?: string;
 	landmark?: string;
@@ -215,7 +215,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 	// ---------------- SUBMIT ----------------
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		setIsSubmitting(true);
-		let uploadedImageUrl = values.photo;
+		let uploadedImageUrl = values.photo || "";
 
 		try {
 			if (files.length > 0) {
@@ -414,6 +414,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 					name="photo"
 					render={({ field }: any) => (
 						<FormItem className="w-full">
+							<FormLabel>Event Image (Optional)</FormLabel>
 							<FormControl>
 								<FileUploader
 									onFieldChange={field.onChange}

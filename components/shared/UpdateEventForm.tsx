@@ -28,7 +28,7 @@ const formSchema = z.object({
 	category: z.string(),
 	tags: z.array(z.string().min(2, { message: "Tag must be at least 2 characters." })).min(1, { message: "At least one tag is required." }),
 	description: z.string().trim().min(2, { message: "Description must be at least 2 characters." }),
-	photo: z.string(),
+	photo: z.string().optional(),
 	isOnline: z.boolean().optional(),
 	location: z.string().trim().optional(),
 	landmark: z.string().trim().optional(),
@@ -69,7 +69,7 @@ const UpdateEventForm = ({ userId, event, eventId }: Props) => {
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		setIsSubmitting(true);
-		let uploadedImageUrl = values.photo;
+		let uploadedImageUrl = values.photo || "";
 
 		try {
 			if (files.length > 0) {

@@ -3,7 +3,7 @@ import { Schema, model, models, Document, Types } from 'mongoose';
 export interface IEvent extends Document {
 	title: string;
 	description: string;
-	photo: string; // Event cover image
+	photo?: string; // Event cover image (optional)
 	imageUrl?: string; // Optional alias for photo (compatibility)
 	isOnline: boolean;
 	location?: string;
@@ -40,7 +40,7 @@ const eventSchema = new Schema<IEvent>(
 	{
 		title: { type: String, required: true },
 		description: { type: String, required: true },
-		photo: { type: String, required: true },
+		photo: { type: String, required: false },
 		imageUrl: { type: String }, // ✅ Extra compatibility field
 		isOnline: { type: Boolean, default: false },
 		location: { type: String },
