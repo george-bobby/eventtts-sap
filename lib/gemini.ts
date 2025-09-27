@@ -5,31 +5,7 @@ import { z } from 'zod';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-// Zod schema for structured task generation - simplified to avoid deep type instantiation
-const SubtaskSchema = z.object({
-	id: z.string(),
-	content: z.string(),
-});
-
-const TaskSchema = z.object({
-	id: z.string(),
-	content: z.string(),
-	column: z.enum(['planning', 'developing', 'reviewing', 'finished']),
-	priority: z.enum(['high', 'medium', 'low']),
-	estimatedDuration: z.string(),
-	subtasks: z.array(SubtaskSchema),
-});
-
-const TasksResponseSchema = z.object({
-	tasks: z.array(TaskSchema),
-	totalTasks: z.number(),
-	eventType: z.string(),
-});
-
-// Type definitions to avoid inference issues
-type SubtaskType = z.infer<typeof SubtaskSchema>;
-type TaskType = z.infer<typeof TaskSchema>;
-type TasksResponseType = z.infer<typeof TasksResponseSchema>;
+// Task suggestion interface for the return type
 
 export interface TaskSuggestion {
 	id: string;
@@ -126,18 +102,37 @@ Generate ${
 			isSubEvent ? '6-8' : '8-12'
 		} tasks total, distributed across the phases appropriately.`;
 
-		const result = (await generateObject({
+		// Use a simpler schema to avoid deep type instantiation
+		const simpleSchema = z.object({
+			tasks: z.array(
+				z.object({
+					content: z.string(),
+					column: z.string(),
+					priority: z.string(),
+					estimatedDuration: z.string(),
+					subtasks: z.array(
+						z.object({
+							content: z.string(),
+						})
+					),
+				})
+			),
+			totalTasks: z.number(),
+			eventType: z.string(),
+		});
+
+		const result = await generateObject({
 			model: google('gemini-1.5-pro'),
-			schema: TasksResponseSchema,
+			schema: simpleSchema,
 			prompt: prompt,
-		})) as { object: TasksResponseType };
+		});
 
 		// Convert structured response to TaskSuggestion format
 		const tasks: TaskSuggestion[] = result.object.tasks.map((task, index) => ({
 			id: `task_${Date.now()}_${index}`,
 			content: task.content,
 			column: task.column,
-			priority: task.priority,
+			priority: task.priority as 'high' | 'medium' | 'low',
 			estimatedDuration: task.estimatedDuration,
 			subtasks: task.subtasks.map((subtask, subIndex) => ({
 				id: `subtask_${Date.now()}_${index}_${subIndex}`,
