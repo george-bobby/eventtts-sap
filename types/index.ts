@@ -219,4 +219,66 @@ export type ExportAttendeesParams = {
 	organizerId: string;
 };
 
+// ====== FEEDBACK SYSTEM TYPES
+export interface ICustomQuestion {
+	id: string;
+	question: string;
+	type: 'rating' | 'text' | 'multipleChoice' | 'yesNo';
+	required: boolean;
+	options?: string[]; // For multiple choice questions
+}
+
+export interface IFeedbackAnswer {
+	questionId: string;
+	questionText: string;
+	questionType: string;
+	answer: string | number;
+}
+
+export type CreateFeedbackTemplateParams = {
+	eventId: string;
+	customQuestions: ICustomQuestion[];
+	feedbackHours: number;
+};
+
+export type SubmitFeedbackParams = {
+	eventId: string;
+	userId?: string; // Optional for anonymous feedback
+	isAnonymous: boolean;
+	overallSatisfaction: number;
+	contentQuality: number;
+	organizationRating: number;
+	venueRating?: number;
+	recommendationScore: number;
+	likedMost?: string;
+	improvements?: string;
+	additionalComments?: string;
+	customAnswers: IFeedbackAnswer[];
+};
+
+export type GetFeedbackResponsesParams = {
+	eventId: string;
+	organizerId: string;
+	page?: number;
+	limit?: number;
+};
+
+export interface IFeedbackAnalytics {
+	totalResponses: number;
+	responseRate: number; // percentage
+	averageRatings: {
+		overallSatisfaction: number;
+		contentQuality: number;
+		organizationRating: number;
+		venueRating?: number;
+		recommendationScore: number;
+	};
+	npsScore: number; // Net Promoter Score
+	sentimentAnalysis?: {
+		positive: number;
+		neutral: number;
+		negative: number;
+	};
+}
+
 // ... other types in your file

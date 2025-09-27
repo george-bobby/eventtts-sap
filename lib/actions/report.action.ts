@@ -7,6 +7,7 @@ import { connectToDatabase } from '../dbconnection';
 import Event from '../models/event.model';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getEventStatistics } from './order.action';
+import { getFeedbackAnalytics } from './feedback.action';
 import Report from '../models/report.model';
 import User from '../models/user.model';
 
@@ -24,6 +25,17 @@ export async function generatePdfObject({
 		if (!event) throw new Error('Event not found');
 
 		const stats = await getEventStatistics(eventId);
+
+		// Get feedback analytics
+		let feedbackAnalytics = null;
+		try {
+			feedbackAnalytics = await getFeedbackAnalytics(
+				eventId,
+				event.organizer._id.toString()
+			);
+		} catch (error) {
+			console.log('No feedback data available for this event');
+		}
 
 		// Calculate attendance rate
 		const attendanceRate =
@@ -109,6 +121,36 @@ export async function generatePdfObject({
 					: '0'
 			}% ${actualExpenditure > budget ? 'over budget' : 'under budget'}
 
+      **FEEDBACK & SATISFACTION METRICS:**
+      ${
+				feedbackAnalytics
+					? `
+      - Total Feedback Responses: ${feedbackAnalytics.totalResponses}
+      - Response Rate: ${feedbackAnalytics.responseRate.toFixed(1)}%
+      - Overall Satisfaction: ${feedbackAnalytics.averageRatings.overallSatisfaction.toFixed(
+				1
+			)}/5.0
+      - Content Quality Rating: ${feedbackAnalytics.averageRatings.contentQuality.toFixed(
+				1
+			)}/5.0
+      - Organization Rating: ${feedbackAnalytics.averageRatings.organizationRating.toFixed(
+				1
+			)}/5.0
+      ${
+				feedbackAnalytics.averageRatings.venueRating
+					? `- Venue Rating: ${feedbackAnalytics.averageRatings.venueRating.toFixed(
+							1
+					  )}/5.0`
+					: ''
+			}
+      - Net Promoter Score (NPS): ${feedbackAnalytics.npsScore}
+      - Recommendation Score: ${feedbackAnalytics.averageRatings.recommendationScore.toFixed(
+				1
+			)}/10.0
+      `
+					: '- Feedback Data: Not available or no responses collected'
+			}
+
       **USER-PROVIDED INSIGHTS:**
       - Report Prepared By: ${report.preparedBy}
       - Key Highlights: ${report.keyHighlights}
@@ -120,10 +162,16 @@ export async function generatePdfObject({
       1. "Executive Summary" - Overall event overview and success metrics
       2. "Event Performance Analysis" - Detailed attendance, engagement, and operational analysis
       3. "Financial Summary & ROI" - Complete financial breakdown with profit/loss analysis
-      4. "Key Achievements & Outcomes" - Based on user highlights and measurable results
-      5. "Recommendations & Future Improvements" - Data-driven suggestions for future events
+      4. "Attendee Feedback & Satisfaction" - Analysis of feedback data, satisfaction scores, and attendee insights
+      5. "Key Achievements & Outcomes" - Based on user highlights and measurable results
+      6. "Recommendations & Future Improvements" - Data-driven suggestions for future events based on all metrics
 
       Make the report professional, data-driven, and actionable. Include specific numbers and percentages where relevant.
+      ${
+				feedbackAnalytics
+					? 'Pay special attention to the feedback metrics and incorporate satisfaction scores into your analysis.'
+					: 'Note that feedback data was not available for this event.'
+			}
     `;
 
 		const result = await model.generateContent(prompt);

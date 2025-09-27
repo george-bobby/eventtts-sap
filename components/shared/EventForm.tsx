@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { categories } from "@/constants/categories";
 import { campusLocations } from "@/lib/campus-data";
@@ -31,6 +30,9 @@ import { useRouter } from "next/navigation";
 import { FileUploader } from "./FileUploader";
 import SubEventForm from "./SubEventForm";
 import { useUploadThing } from "@/lib/uploadthing";
+import DefaultQuestionsManager from "./DefaultQuestionsManager";
+import CustomQuestionsManager from "./CustomQuestionsManager";
+
 import {
 	Select,
 	SelectContent,
@@ -53,6 +55,15 @@ const subEventSchema = z.object({
 	isFree: z.boolean(),
 	price: z.string().trim().optional(),
 	totalCapacity: z.string().trim().optional(),
+});
+
+// ---------------- CUSTOM QUESTION SCHEMA ----------------
+const customQuestionSchema = z.object({
+	id: z.string(),
+	question: z.string().min(5, { message: "Question must be at least 5 characters." }),
+	type: z.enum(['rating', 'text', 'multipleChoice', 'yesNo']),
+	required: z.boolean(),
+	options: z.array(z.string()).optional(),
 });
 
 // ---------------- EVENT SCHEMA ----------------
@@ -78,6 +89,10 @@ const formSchema = z.object({
 	ageRestriction: z.string().trim().optional(),
 	url: z.string().trim().optional(),
 	subEvents: z.array(subEventSchema).optional(),
+	// Feedback fields
+	feedbackEnabled: z.boolean().optional(),
+	feedbackHours: z.number().min(1).max(168).optional(), // 1 hour to 1 week
+	customQuestions: z.array(customQuestionSchema).optional(),
 });
 
 // ---------------- INTERFACES ----------------
@@ -118,7 +133,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [files, setFiles] = useState<File[]>([]);
-	const [CategoryData, setCategoryData] = useState([...categories]);
+
 	const { startUpload } = useUploadThing("imageUploader");
 
 	// ---------------- INITIAL VALUES ----------------
@@ -149,6 +164,9 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 				ageRestriction: event.ageRestriction ? event.ageRestriction.toString() : "",
 				url: event.url || "",
 				subEvents: [],
+				feedbackEnabled: (event as any).feedbackEnabled ?? true,
+				feedbackHours: (event as any).feedbackHours || 2,
+				customQuestions: [],
 			};
 		}
 		return {
@@ -172,6 +190,9 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 			ageRestriction: "",
 			url: "",
 			subEvents: [],
+			feedbackEnabled: true,
+			feedbackHours: 2,
+			customQuestions: [],
 		};
 	};
 
@@ -579,60 +600,70 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 					/>
 				</div>
 
-				{/* Price Fields */}
-				<div className="flex flex-col gap-5 md:flex-row">
-					<FormField
-						control={form.control}
-						name="isFree"
-						render={({ field }: any) => (
-							<FormItem>
-								<FormControl>
-									<div className="flex items-center">
-										<label
-											htmlFor="isFree"
-											className="whitespace-nowrap pr-3 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-										>
-											Free Ticket
-										</label>
-										<Checkbox
-											onCheckedChange={field.onChange}
-											checked={field.value}
-											id="isFree"
-											className="mr-2 h-5 w-5 border-2 border-primary-500"
-										/>
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+				{/* Pricing Section */}
+				<div className="space-y-4">
+					<div className="flex items-center justify-between">
+						<h3 className="text-lg font-semibold text-gray-900">💰 Event Pricing</h3>
+					</div>
 
-					<FormField
-						control={form.control}
-						name="price"
-						render={({ field }: any) => (
-							<FormItem className="w-full">
-								<FormControl>
-									<div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-										<Image
-											src="/icons/dollar.svg"
-											alt="dollar"
-											width={24}
-											height={24}
-											className="filter-grey"
-										/>
-										<Input
-											type="number"
-											placeholder="Price"
-											{...field}
-											className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-										/>
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
+					<div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+						<FormField
+							control={form.control}
+							name="isFree"
+							render={({ field }: any) => (
+								<FormItem className="mb-4">
+									<FormControl>
+										<div className="flex items-center space-x-3">
+											<Checkbox
+												onCheckedChange={field.onChange}
+												checked={field.value}
+												id="isFree"
+												className="h-5 w-5 border-2 border-gray-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+											/>
+											<label
+												htmlFor="isFree"
+												className="text-base font-medium text-gray-900 cursor-pointer"
+											>
+												This is a free event
+											</label>
+										</div>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						{!form.watch("isFree") && (
+							<FormField
+								control={form.control}
+								name="price"
+								render={({ field }: any) => (
+									<FormItem className="w-full">
+										<FormLabel className="text-gray-700 font-medium">Event Price</FormLabel>
+										<FormControl>
+											<div className="relative">
+												<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+													<span className="text-gray-500 text-lg font-semibold">$</span>
+												</div>
+												<Input
+													type="number"
+													placeholder="0.00"
+													{...field}
+													className="pl-8 h-12 border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-lg text-lg"
+													step="0.01"
+													min="0"
+												/>
+											</div>
+										</FormControl>
+										<FormDescription className="text-gray-600">
+											Enter the ticket price in USD. Leave empty for free events.
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 						)}
-					/>
+					</div>
 				</div>
 
 				{/* Capacity Field */}
@@ -667,6 +698,107 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 						</FormItem>
 					)}
 				/>
+
+				{/* Feedback Settings Section */}
+				<div className="col-span-2 border-t pt-8 mt-8">
+					<div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+						<h3 className="text-xl font-bold mb-2 text-blue-900">📝 Feedback Collection</h3>
+						<p className="text-blue-700 mb-6">
+							Gather valuable insights from your attendees with automated feedback collection
+						</p>
+
+						{/* Feedback Enabled */}
+						<FormField
+							control={form.control}
+							name="feedbackEnabled"
+							render={({ field }) => (
+								<FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-6">
+									<FormControl>
+										<Checkbox
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											className="mt-1"
+										/>
+									</FormControl>
+									<div className="space-y-1 leading-none">
+										<FormLabel className="text-base font-semibold text-gray-900">
+											Enable feedback collection
+										</FormLabel>
+										<FormDescription className="text-gray-600">
+											Automatically send feedback requests to attendees after the event ends
+										</FormDescription>
+									</div>
+								</FormItem>
+							)}
+						/>
+
+						{/* Feedback Hours */}
+						{form.watch("feedbackEnabled") && (
+							<div className="space-y-6">
+								<FormField
+									control={form.control}
+									name="feedbackHours"
+									render={({ field }) => (
+										<FormItem className="w-full max-w-sm">
+											<FormLabel className="text-base font-medium text-gray-900">
+												Send feedback email after
+											</FormLabel>
+											<Select
+												onValueChange={(value) => field.onChange(parseInt(value))}
+												defaultValue={field.value?.toString()}
+											>
+												<FormControl>
+													<SelectTrigger className="h-12 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+														<SelectValue placeholder="Select timing" />
+													</SelectTrigger>
+												</FormControl>
+												<SelectContent>
+													<SelectItem value="1">1 hour</SelectItem>
+													<SelectItem value="2">2 hours</SelectItem>
+													<SelectItem value="4">4 hours</SelectItem>
+													<SelectItem value="8">8 hours</SelectItem>
+													<SelectItem value="12">12 hours</SelectItem>
+													<SelectItem value="24">1 day</SelectItem>
+													<SelectItem value="48">2 days</SelectItem>
+													<SelectItem value="72">3 days</SelectItem>
+													<SelectItem value="168">1 week</SelectItem>
+												</SelectContent>
+											</Select>
+											<FormDescription className="text-gray-600">
+												How long after the event ends should feedback emails be sent
+											</FormDescription>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								{/* Default Questions Manager */}
+								<div className="border-t border-blue-200 pt-6">
+									<DefaultQuestionsManager
+										isOnline={form.watch("isOnline") || false}
+									/>
+								</div>
+
+								{/* Custom Questions Manager */}
+								<div className="border-t border-blue-200 pt-6">
+									<FormField
+										control={form.control}
+										name="customQuestions"
+										render={({ field }) => (
+											<FormItem>
+												<CustomQuestionsManager
+													questions={field.value || []}
+													onQuestionsChange={field.onChange}
+												/>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</div>
+							</div>
+						)}
+					</div>
+				</div>
 
 				{/* Sub Events Section */}
 				<div className="flex flex-col gap-5">

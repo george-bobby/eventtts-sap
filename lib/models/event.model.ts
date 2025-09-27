@@ -29,6 +29,9 @@ export interface IEvent extends Document {
 	subEvents: Types.ObjectId[]; // List of sub-events
 	eventType?: 'main' | 'sub'; // Event type
 	status?: 'draft' | 'published' | 'cancelled';
+	// Feedback system fields
+	feedbackEnabled?: boolean; // Whether feedback is enabled for this event
+	feedbackHours?: number; // Hours after event ends to send feedback email
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -67,6 +70,9 @@ const eventSchema = new Schema<IEvent>(
 			enum: ['draft', 'published', 'cancelled'],
 			default: 'published',
 		},
+		// Feedback system fields
+		feedbackEnabled: { type: Boolean, default: true },
+		feedbackHours: { type: Number, default: 2 }, // Default 2 hours after event
 	},
 	{ timestamps: true }
 );
