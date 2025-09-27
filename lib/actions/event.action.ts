@@ -133,31 +133,142 @@ export async function getEvents({
 		await connectToDatabase();
 		const skipAmount = (Math.max(1, page) - 1) * limit;
 
-		const searchQuery: EventQuery = {};
+		// Build match conditions for aggregation
+		const matchConditions: any = {
+			parentEvent: { $exists: false },
+		};
+
 		if (query) {
-			searchQuery.$or = [
+			matchConditions.$or = [
 				{ title: { $regex: query, $options: 'i' } },
 				{ description: { $regex: query, $options: 'i' } },
 				{ location: { $regex: query, $options: 'i' } },
 				{ landmark: { $regex: query, $options: 'i' } },
 			];
 		}
+
 		if (category) {
 			const categoryDoc = await Category.findOne({ name: category });
-			if (categoryDoc) searchQuery.category = categoryDoc._id;
+			if (categoryDoc) matchConditions.category = categoryDoc._id;
 		}
-		searchQuery.parentEvent = { $exists: false };
 
-		const events = await Event.find(searchQuery)
-			.populate('category', 'name')
-			.populate('organizer', 'firstName lastName email')
-			.populate('tags', 'name')
-			.sort({ createdAt: -1 })
-			.skip(skipAmount)
-			.limit(limit)
-			.lean<IEvent[]>();
+		// Use aggregation pipeline to handle missing references gracefully
+		const pipeline = [
+			{ $match: matchConditions },
 
-		const total = await Event.countDocuments(searchQuery);
+			// Lookup organizer and filter out events with deleted organizers
+			{
+				$lookup: {
+					from: 'users',
+					localField: 'organizer',
+					foreignField: '_id',
+					as: 'organizerData',
+				},
+			},
+			{
+				$match: {
+					'organizerData.0': { $exists: true }, // Only include events where organizer exists
+				},
+			},
+
+			// Lookup category
+			{
+				$lookup: {
+					from: 'categories',
+					localField: 'category',
+					foreignField: '_id',
+					as: 'categoryData',
+				},
+			},
+
+			// Lookup tags with error handling for invalid ObjectIds
+			{
+				$lookup: {
+					from: 'tags',
+					let: { eventTags: '$tags' },
+					pipeline: [
+						{
+							$match: {
+								$expr: {
+									$and: [
+										{ $in: ['$_id', '$$eventTags'] },
+										{ $type: ['$_id', 'objectId'] }, // Only match valid ObjectIds
+									],
+								},
+							},
+						},
+					],
+					as: 'tagsData',
+				},
+			},
+
+			// Project the final structure
+			{
+				$project: {
+					title: 1,
+					description: 1,
+					photo: 1,
+					imageUrl: 1,
+					isOnline: 1,
+					location: 1,
+					landmark: 1,
+					campusLocation: 1,
+					startDate: 1,
+					endDate: 1,
+					startTime: 1,
+					endTime: 1,
+					duration: 1,
+					totalCapacity: 1,
+					isFree: 1,
+					price: 1,
+					ticketsLeft: 1,
+					soldOut: 1,
+					ageRestriction: 1,
+					url: 1,
+					eventType: 1,
+					status: 1,
+					feedbackEnabled: 1,
+					feedbackHours: 1,
+					createdAt: 1,
+					updatedAt: 1,
+					category: { $arrayElemAt: ['$categoryData', 0] },
+					organizer: {
+						$arrayElemAt: ['$organizerData', 0],
+					},
+					tags: '$tagsData',
+				},
+			},
+
+			// Sort and paginate
+			{ $sort: { createdAt: -1 } },
+			{ $skip: skipAmount },
+			{ $limit: limit },
+		];
+
+		const events = await Event.aggregate(pipeline);
+
+		// Get total count with the same filtering
+		const countPipeline = [
+			{ $match: matchConditions },
+			{
+				$lookup: {
+					from: 'users',
+					localField: 'organizer',
+					foreignField: '_id',
+					as: 'organizerData',
+				},
+			},
+			{
+				$match: {
+					'organizerData.0': { $exists: true },
+				},
+			},
+			{ $count: 'total' },
+		];
+
+		const countResult = await Event.aggregate(countPipeline);
+		const total = countResult[0]?.total || 0;
+
 		return {
 			events: JSON.parse(JSON.stringify(events)),
 			totalPages: Math.ceil(total / limit),
@@ -177,11 +288,105 @@ export async function getEventById(
 	try {
 		await connectToDatabase();
 
-		const event = (await Event.findById(id)
-			.populate('organizer', 'username photo')
-			.populate('category', 'name')
-			.populate('tags', 'name')
-			.lean()) as any;
+		// Use aggregation to handle missing organizer gracefully
+		const eventPipeline = [
+			{ $match: { _id: new Types.ObjectId(id) } },
+
+			// Lookup organizer and filter out events with deleted organizers
+			{
+				$lookup: {
+					from: 'users',
+					localField: 'organizer',
+					foreignField: '_id',
+					as: 'organizerData',
+				},
+			},
+			{
+				$match: {
+					'organizerData.0': { $exists: true }, // Only include events where organizer exists
+				},
+			},
+
+			// Lookup category
+			{
+				$lookup: {
+					from: 'categories',
+					localField: 'category',
+					foreignField: '_id',
+					as: 'categoryData',
+				},
+			},
+
+			// Lookup tags with error handling for invalid ObjectIds
+			{
+				$lookup: {
+					from: 'tags',
+					let: { eventTags: '$tags' },
+					pipeline: [
+						{
+							$match: {
+								$expr: {
+									$and: [
+										{ $in: ['$_id', '$$eventTags'] },
+										{ $type: ['$_id', 'objectId'] }, // Only match valid ObjectIds
+									],
+								},
+							},
+						},
+					],
+					as: 'tagsData',
+				},
+			},
+
+			// Project the final structure
+			{
+				$project: {
+					title: 1,
+					description: 1,
+					photo: 1,
+					imageUrl: 1,
+					isOnline: 1,
+					location: 1,
+					landmark: 1,
+					campusLocation: 1,
+					startDate: 1,
+					endDate: 1,
+					startTime: 1,
+					endTime: 1,
+					duration: 1,
+					totalCapacity: 1,
+					isFree: 1,
+					price: 1,
+					ticketsLeft: 1,
+					soldOut: 1,
+					ageRestriction: 1,
+					url: 1,
+					parentEvent: 1,
+					subEvents: 1,
+					eventType: 1,
+					status: 1,
+					feedbackEnabled: 1,
+					feedbackHours: 1,
+					createdAt: 1,
+					updatedAt: 1,
+					category: { $arrayElemAt: ['$categoryData', 0] },
+					organizer: {
+						$let: {
+							vars: { org: { $arrayElemAt: ['$organizerData', 0] } },
+							in: {
+								_id: '$$org._id',
+								username: '$$org.username',
+								photo: '$$org.photo',
+							},
+						},
+					},
+					tags: '$tagsData',
+				},
+			},
+		];
+
+		const eventResult = await Event.aggregate(eventPipeline);
+		const event = eventResult[0];
 
 		if (!event) return null;
 
@@ -197,11 +402,95 @@ export async function getEventById(
 				event.isFree = parent.isFree;
 			}
 		} else {
-			const subEvents = (await Event.find({ parentEvent: event._id })
-				.populate('organizer', 'username photo')
-				.populate('category', 'name')
-				.populate('tags', 'name')
-				.lean()) as any[];
+			// Get sub-events using aggregation to handle deleted organizers
+			const subEventsPipeline = [
+				{ $match: { parentEvent: event._id } },
+				{
+					$lookup: {
+						from: 'users',
+						localField: 'organizer',
+						foreignField: '_id',
+						as: 'organizerData',
+					},
+				},
+				{
+					$match: {
+						'organizerData.0': { $exists: true },
+					},
+				},
+				{
+					$lookup: {
+						from: 'categories',
+						localField: 'category',
+						foreignField: '_id',
+						as: 'categoryData',
+					},
+				},
+				{
+					$lookup: {
+						from: 'tags',
+						let: { eventTags: '$tags' },
+						pipeline: [
+							{
+								$match: {
+									$expr: {
+										$and: [
+											{ $in: ['$_id', '$$eventTags'] },
+											{ $type: ['$_id', 'objectId'] },
+										],
+									},
+								},
+							},
+						],
+						as: 'tagsData',
+					},
+				},
+				{
+					$project: {
+						title: 1,
+						description: 1,
+						photo: 1,
+						imageUrl: 1,
+						isOnline: 1,
+						location: 1,
+						landmark: 1,
+						campusLocation: 1,
+						startDate: 1,
+						endDate: 1,
+						startTime: 1,
+						endTime: 1,
+						duration: 1,
+						totalCapacity: 1,
+						isFree: 1,
+						price: 1,
+						ticketsLeft: 1,
+						soldOut: 1,
+						ageRestriction: 1,
+						url: 1,
+						parentEvent: 1,
+						eventType: 1,
+						status: 1,
+						feedbackEnabled: 1,
+						feedbackHours: 1,
+						createdAt: 1,
+						updatedAt: 1,
+						category: { $arrayElemAt: ['$categoryData', 0] },
+						organizer: {
+							$let: {
+								vars: { org: { $arrayElemAt: ['$organizerData', 0] } },
+								in: {
+									_id: '$$org._id',
+									username: '$$org.username',
+									photo: '$$org.photo',
+								},
+							},
+						},
+						tags: '$tagsData',
+					},
+				},
+			];
+
+			const subEvents = await Event.aggregate(subEventsPipeline);
 
 			event.subEvents = subEvents.map((s: any) => ({
 				...s,
@@ -292,14 +581,110 @@ export async function getRelatedEvents(id: string) {
 		const event = await Event.findById(id);
 		if (!event) throw new Error('Event not found');
 
-		const related = await Event.find({
-			_id: { $ne: event._id },
-			$or: [{ category: event.category }, { tags: { $in: event.tags } }],
-		})
-			.limit(3)
-			.populate('category', 'name')
-			.populate('organizer', 'firstName lastName email')
-			.populate('tags', 'name');
+		// Use aggregation to handle missing organizers gracefully
+		const pipeline = [
+			{
+				$match: {
+					_id: { $ne: event._id },
+					$or: [{ category: event.category }, { tags: { $in: event.tags } }],
+				},
+			},
+
+			// Lookup organizer and filter out events with deleted organizers
+			{
+				$lookup: {
+					from: 'users',
+					localField: 'organizer',
+					foreignField: '_id',
+					as: 'organizerData',
+				},
+			},
+			{
+				$match: {
+					'organizerData.0': { $exists: true }, // Only include events where organizer exists
+				},
+			},
+
+			// Lookup category
+			{
+				$lookup: {
+					from: 'categories',
+					localField: 'category',
+					foreignField: '_id',
+					as: 'categoryData',
+				},
+			},
+
+			// Lookup tags with error handling for invalid ObjectIds
+			{
+				$lookup: {
+					from: 'tags',
+					let: { eventTags: '$tags' },
+					pipeline: [
+						{
+							$match: {
+								$expr: {
+									$and: [
+										{ $in: ['$_id', '$$eventTags'] },
+										{ $type: ['$_id', 'objectId'] }, // Only match valid ObjectIds
+									],
+								},
+							},
+						},
+					],
+					as: 'tagsData',
+				},
+			},
+
+			// Project the final structure
+			{
+				$project: {
+					title: 1,
+					description: 1,
+					photo: 1,
+					imageUrl: 1,
+					isOnline: 1,
+					location: 1,
+					landmark: 1,
+					campusLocation: 1,
+					startDate: 1,
+					endDate: 1,
+					startTime: 1,
+					endTime: 1,
+					duration: 1,
+					totalCapacity: 1,
+					isFree: 1,
+					price: 1,
+					ticketsLeft: 1,
+					soldOut: 1,
+					ageRestriction: 1,
+					url: 1,
+					eventType: 1,
+					status: 1,
+					feedbackEnabled: 1,
+					feedbackHours: 1,
+					createdAt: 1,
+					updatedAt: 1,
+					category: { $arrayElemAt: ['$categoryData', 0] },
+					organizer: {
+						$let: {
+							vars: { org: { $arrayElemAt: ['$organizerData', 0] } },
+							in: {
+								_id: '$$org._id',
+								firstName: '$$org.firstName',
+								lastName: '$$org.lastName',
+								email: '$$org.email',
+							},
+						},
+					},
+					tags: '$tagsData',
+				},
+			},
+
+			{ $limit: 3 },
+		];
+
+		const related = await Event.aggregate(pipeline);
 
 		return JSON.parse(JSON.stringify(related));
 	} catch (error) {
