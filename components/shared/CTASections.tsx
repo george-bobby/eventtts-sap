@@ -20,11 +20,11 @@ export default function CTASections() {
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                   Create Events That
-                  <span className="block text-red-600">Students Love</span>
+                  <span className="block text-red-600">People Love</span>
                 </h2>
                 <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                   Transform your event ideas into reality with our comprehensive event management tools.
-                  Reach thousands of engaged students and create memorable campus experiences.
+                  Reach thousands of engaged audiences and create memorable campus experiences.
                 </p>
 
                 {/* Features List */}
@@ -39,7 +39,7 @@ export default function CTASections() {
                     <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                       <Users className="w-4 h-4 text-red-600" />
                     </div>
-                    <span className="text-lg text-gray-700">Built-in promotion to relevant students</span>
+                    <span className="text-lg text-gray-700">Built-in promotion to relevant people</span>
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
@@ -148,7 +148,7 @@ export default function CTASections() {
                 </h2>
                 <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                   Never miss out on amazing campus experiences again. Get personalized event recommendations
-                  based on your interests and connect with like-minded students.
+                  based on your interests and connect with like-minded people.
                 </p>
 
                 {/* Features List */}
@@ -195,10 +195,10 @@ export default function CTASections() {
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Ready to Transform Your Campus Experience?
+              Ready to Transform Your Event Experience?
             </h2>
             <p className="text-xl text-gray-300 mb-12 leading-relaxed">
-              Join thousands of students who are already making the most of their campus life.
+              Join thousands of people who are already making the most of their  life.
               Whether you're looking to attend amazing events or create your own, we've got you covered.
             </p>
 
@@ -218,7 +218,7 @@ export default function CTASections() {
             </div>
 
             <div className="mt-12 text-gray-400">
-              <p>No credit card required • Free forever • Join 15,000+ students</p>
+              <p>No credit card required • Free forever • Join 15,000+ participants</p>
             </div>
           </div>
         </div>
