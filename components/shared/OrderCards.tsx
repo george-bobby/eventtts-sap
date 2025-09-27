@@ -3,13 +3,14 @@ import OrderCard from "./OrderCard";
 
 interface Props {
   events: any;
+  currentUserId?: string | null;
 }
 
-const OrderCards = ({ events }: Props) => {
+const OrderCards = ({ events, currentUserId }: Props) => {
   return (
     <div className="flex justify-evenly items-center gap-10 flex-wrap">
       {events.map((event: any) => {
-        return <OrderCard key={event._id} event={event} />;
+        return <OrderCard key={event._id} event={event} currentUserId={currentUserId} />;
       })}
     </div>
   );
