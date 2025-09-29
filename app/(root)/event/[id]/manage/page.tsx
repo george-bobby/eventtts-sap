@@ -39,36 +39,12 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
 
   const managementOptions = [
     {
-      title: 'Plan Event',
-      description: 'AI-powered task planning and management board',
-      icon: Target,
-      href: `/event/${id}/plan`,
-      color: 'bg-purple-500 hover:bg-purple-600',
-      iconColor: 'text-purple-600'
-    },
-    {
       title: 'Edit Event',
       description: 'Update event details, description, and settings',
       icon: Edit,
       href: `/event/${id}/update`,
       color: 'bg-blue-500 hover:bg-blue-600',
       iconColor: 'text-blue-600'
-    },
-    {
-      title: 'Manage Attendees',
-      description: 'View registered attendees and export data',
-      icon: Users,
-      href: `/event/${id}/attendees`,
-      color: 'bg-green-500 hover:bg-green-600',
-      iconColor: 'text-green-600'
-    },
-    {
-      title: 'AI Report',
-      description: 'Generate comprehensive event reports',
-      icon: FileText,
-      href: `/event/${id}/report`,
-      color: 'bg-purple-500 hover:bg-purple-600',
-      iconColor: 'text-purple-600'
     },
     {
       title: 'View Issues',
@@ -87,20 +63,28 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       iconColor: 'text-indigo-600'
     },
     {
+      title: 'Manage Attendees',
+      description: 'View registered attendees and export data',
+      icon: Users,
+      href: `/event/${id}/attendees`,
+      color: 'bg-green-500 hover:bg-green-600',
+      iconColor: 'text-green-600'
+    },
+    {
+      title: 'Generate Report',
+      description: 'Generate comprehensive AI event reports',
+      icon: FileText,
+      href: `/event/${id}/report`,
+      color: 'bg-purple-500 hover:bg-purple-600',
+      iconColor: 'text-purple-600'
+    },
+    {
       title: 'Stakeholders',
       description: 'Manage speakers, volunteers, and participants',
       icon: UserCheck,
       href: `/event/${id}/stakeholders`,
       color: 'bg-teal-500 hover:bg-teal-600',
       iconColor: 'text-teal-600'
-    },
-    {
-      title: 'Photo Gallery',
-      description: 'Manage event photos and galleries',
-      icon: Camera,
-      href: `/event/${id}/gallery`,
-      color: 'bg-pink-500 hover:bg-pink-600',
-      iconColor: 'text-pink-600'
     },
     {
       title: 'Event Analytics',
@@ -111,6 +95,14 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       iconColor: 'text-cyan-600'
     },
     {
+      title: 'Event Updates',
+      description: 'Send notifications and updates to attendees',
+      icon: Bell,
+      href: `/event/${id}/updates`,
+      color: 'bg-emerald-500 hover:bg-emerald-600',
+      iconColor: 'text-emerald-600'
+    },
+    {
       title: 'Certificates',
       description: 'Generate and manage event certificates',
       icon: Award,
@@ -118,21 +110,21 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       color: 'bg-yellow-500 hover:bg-yellow-600',
       iconColor: 'text-yellow-600'
     },
-    // {
-    //   title: 'Report Issues',
-    //   description: 'Report technical or event-related issues',
-    //   icon: Flag,
-    //   href: `/event/${id}/report-issue`,
-    //   color: 'bg-red-500 hover:bg-red-600',
-    //   iconColor: 'text-red-600'
-    // },
     {
-      title: 'Event Updates',
-      description: 'Send notifications and updates to attendees',
-      icon: Bell,
-      href: `/event/${id}/updates`,
-      color: 'bg-emerald-500 hover:bg-emerald-600',
-      iconColor: 'text-emerald-600'
+      title: 'Photo Gallery',
+      description: 'Manage event photos and galleries',
+      icon: Camera,
+      href: `/event/${id}/gallery`,
+      color: 'bg-pink-500 hover:bg-pink-600',
+      iconColor: 'text-pink-600'
+    },
+    {
+      title: 'Plan Event',
+      description: 'AI-powered task planning and management board',
+      icon: Target,
+      href: `/event/${id}/plan`,
+      color: 'bg-purple-500 hover:bg-purple-600',
+      iconColor: 'text-purple-600'
     },
     {
       title: 'QR Code',
@@ -264,7 +256,7 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
                   Permanently delete this event and all associated data
                 </p>
               </div>
-              <DeleteEventButton event={event} />
+              <DeleteEventButton eventId={String(event._id)} />
             </div>
           </CardContent>
         </Card>

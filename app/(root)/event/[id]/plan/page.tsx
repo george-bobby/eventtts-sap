@@ -4,6 +4,9 @@ import { getUserByClerkId } from '@/lib/actions/user.action';
 import { auth } from '@clerk/nextjs';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import NoResults from '@/components/shared/NoResults';
 
 interface Props {
@@ -73,8 +76,34 @@ const EventPlanPage = async ({ params, searchParams }: Props) => {
   }
 
   return (
-    <div>
-      <EventPlanner event={targetEvent} isSubEvent={isSubEvent} />
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header Section */}
+      <section className="bg-gradient-to-r from-purple-500 to-purple-600 py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Button asChild variant="outline" size="sm" className="bg-white text-purple-600 hover:bg-gray-100">
+              <Link href={`/event/${awaitedParams.id}/manage`}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="bg-white text-purple-600 hover:bg-gray-100">
+              <Link href={`/event/${awaitedParams.id}`}>
+                View Event Page
+              </Link>
+            </Button>
+          </div>
+          <h1 className="text-3xl font-bold text-white">Event Planning Board</h1>
+          <p className="text-purple-100 mt-2">
+            AI-powered task planning and management for {targetEvent.title}
+          </p>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <EventPlanner event={targetEvent} isSubEvent={isSubEvent} />
+      </div>
     </div>
   );
 };

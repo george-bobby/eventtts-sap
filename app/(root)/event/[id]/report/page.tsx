@@ -3,6 +3,9 @@
 import ReportForm from "@/components/shared/ReportForm";
 import { getEventById } from "@/lib/actions/event.action";
 import { auth } from "@clerk/nextjs";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 type ReportPageProps = {
   params: Promise<{
@@ -27,51 +30,34 @@ const ReportPage = async ({ params }: ReportPageProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-primary/90 via-primary to-primary/80 py-16 md:py-24 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-dotted-pattern opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent"></div>
-
-        <div className="wrapper relative z-10">
-          <div className="max-w-4xl mx-auto text-center text-white">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <span className="text-sm font-medium">✨ AI-Powered</span>
-            </div>
-
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Generate Event Report
-            </h1>
-
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
-              Create comprehensive, professional reports for <span className="font-semibold text-white">{event.title}</span> with AI assistance
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <span>📊</span>
-                <span>Automated Data Analysis</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <span>🎯</span>
-                <span>Professional Formatting</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <span>📄</span>
-                <span>PDF Export Ready</span>
-              </div>
-            </div>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header Section */}
+      <section className="bg-gradient-to-r from-purple-500 to-purple-600 py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Button asChild variant="outline" size="sm" className="bg-white text-purple-600 hover:bg-gray-100">
+              <Link href={`/event/${id}/manage`}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="bg-white text-purple-600 hover:bg-gray-100">
+              <Link href={`/event/${id}`}>
+                View Event Page
+              </Link>
+            </Button>
           </div>
+          <h1 className="text-3xl font-bold text-white">Event Report</h1>
+          <p className="text-purple-100 mt-2">
+            Generate comprehensive, AI-powered reports for {event.title}
+          </p>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="py-12 md:py-20">
-        <div className="wrapper">
-          <ReportForm eventId={id} userId={userId} event={JSON.parse(JSON.stringify(event))} />
-        </div>
-      </section>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <ReportForm eventId={id} userId={userId} event={JSON.parse(JSON.stringify(event))} />
+      </div>
     </div>
   );
 };

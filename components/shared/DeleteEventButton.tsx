@@ -15,7 +15,11 @@ import { toast } from "@/hooks/use-toast";
 import { deleteEventById } from "@/lib/actions/event.action";
 import { Loader2 } from "lucide-react";
 
-const DeleteEventButton = ({ event }: any) => {
+interface DeleteEventButtonProps {
+  eventId: string;
+}
+
+const DeleteEventButton = ({ eventId }: DeleteEventButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
@@ -92,7 +96,7 @@ const DeleteEventButton = ({ event }: any) => {
               </Button>
               <Button
                 variant="destructive"
-                onClick={() => handleDeleteEvent(event._id)}
+                onClick={() => handleDeleteEvent(eventId)}
                 disabled={isDeleting}
               >
                 {isDeleting ? (

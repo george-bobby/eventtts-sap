@@ -40,18 +40,23 @@ export default async function AttendeePage({ params }: AttendeePageProps) {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-red-500 to-red-600 py-8">
+      <section className="bg-gradient-to-r from-green-500 to-green-600 py-8">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-4">
-            <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
-              <Link href={`/event/${eventId}`}>
+            <Button asChild variant="outline" size="sm" className="bg-white text-green-600 hover:bg-gray-100">
+              <Link href={`/event/${eventId}/manage`}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Event
+                Back to Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="bg-white text-green-600 hover:bg-gray-100">
+              <Link href={`/event/${eventId}`}>
+                View Event Page
               </Link>
             </Button>
           </div>
           <h1 className="text-3xl font-bold text-white">Attendee Management</h1>
-          <p className="text-red-100 mt-2">
+          <p className="text-green-100 mt-2">
             Manage registrations and export attendee data for your event
           </p>
         </div>

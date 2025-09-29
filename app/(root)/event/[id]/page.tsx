@@ -107,7 +107,7 @@ const Page = async ({ params }: Props) => {
 						</div>
 					) : isOrganizer ? (
 						// Show Manage Event button for organizers
-						<Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
+						<Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white">
 							<Link href={`/event/${event._id}/manage`}>
 								⚙️ Manage Event
 							</Link>

@@ -170,7 +170,7 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
           )}
 
           {/* Delete button on non-profile pages only */}
-          {page !== "profile" && isOrganizer && <DeleteEventButton event={event} />}
+          {page !== "profile" && isOrganizer && <DeleteEventButton eventId={String(event._id)} />}
         </div>
       </div>
     </div>

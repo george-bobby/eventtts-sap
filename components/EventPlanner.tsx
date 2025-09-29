@@ -458,135 +458,124 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
   const categoryName = typeof event.category === 'string' ? event.category : event.category.name;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-4xl font-bold text-gray-900">
-              {isSubEvent ? '📅 Sub-Event' : '🎯 Event'} Planning Board
-            </h1>
-          </div>
-
-          {/* Event Details Card */}
-          <Card className="mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-900">
-                <Calendar className="h-5 w-5" />
-                {event.title}
-              </CardTitle>
-              <CardDescription className="flex items-center gap-4 text-sm">
-                <Badge variant="secondary">{categoryName}</Badge>
-                {event.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{event.isOnline ? 'Online' : event.location}</span>
-                  </div>
-                )}
-                {event.totalCapacity && (
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>{event.totalCapacity} attendees</span>
-                  </div>
-                )}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* Auto-generating tasks indicator */}
-        {isGenerating && (
-          <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-center gap-3">
-                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-900">Generating AI-Powered Tasks</h3>
-                  <p className="text-blue-700">Creating a personalized task list for your {categoryName.toLowerCase()} event...</p>
-                </div>
+    <div className="space-y-6">
+      {/* Event Details Card */}
+      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-900">
+            <Calendar className="h-5 w-5" />
+            {event.title}
+          </CardTitle>
+          <CardDescription className="flex items-center gap-4 text-sm">
+            <Badge variant="secondary">{categoryName}</Badge>
+            {event.location && (
+              <div className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                <span>{event.isOnline ? 'Online' : event.location}</span>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Progress Stats */}
-        {tasks.length > 0 && (
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-                  <div className="text-sm text-gray-600">Total Tasks</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">{stats.completed}</div>
-                  <div className="text-sm text-gray-600">Completed Tasks</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">{stats.progress}%</div>
-                  <div className="text-sm text-gray-600">Progress</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{stats.completedSubtasks}/{stats.totalSubtasks}</div>
-                  <div className="text-sm text-gray-600">Subtasks Done</div>
-                </div>
+            )}
+            {event.totalCapacity && (
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>{event.totalCapacity} attendees</span>
               </div>
+            )}
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-              <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${stats.progress}%` }}
-                  />
-                </div>
+      {/* Auto-generating tasks indicator */}
+      {isGenerating && (
+        <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center gap-3">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900">Generating AI-Powered Tasks</h3>
+                <p className="text-blue-700">Creating a personalized task list for your {categoryName.toLowerCase()} event...</p>
               </div>
-
-              {hasGenerated && (
-                <div className="flex gap-2 mt-4">
-                  <Button variant="outline" onClick={handleClearTasks} size="sm">
-                    Clear All Tasks
-                  </Button>
-                  <Button variant="outline" onClick={handleGenerateTasks} size="sm" disabled={isGenerating}>
-                    Regenerate Tasks
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Task Board */}
-        {tasks.length > 0 && (
-          <DndProvider backend={HTML5Backend}>
-            <div className="flex space-x-4 overflow-x-auto pb-4">
-              {columns.map((col) => (
-                <Column
-                  key={col.id}
-                  title={`${col.icon} ${col.title}`}
-                  columnId={col.id}
-                  tasks={tasks.filter((task) => task.column === col.id)}
-                  onDropTask={handleDropTask}
-                  onMoveSubtask={handleMoveSubtask}
-                  onToggleTask={handleToggleTask}
-                  onToggleSubtask={handleToggleSubtask}
-                />
-              ))}
             </div>
-          </DndProvider>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Empty State */}
-        {tasks.length === 0 && hasGenerated && (
-          <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
-            <AlertCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks generated</h3>
-            <p className="text-gray-600 mb-4">Something went wrong with task generation. Please try again.</p>
-            <Button onClick={handleGenerateTasks} disabled={isGenerating}>
-              Try Again
-            </Button>
+      {/* Progress Stats */}
+      {tasks.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-sm text-gray-600">Total Tasks</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600">{stats.completed}</div>
+                <div className="text-sm text-gray-600">Completed Tasks</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600">{stats.progress}%</div>
+                <div className="text-sm text-gray-600">Progress</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{stats.completedSubtasks}/{stats.totalSubtasks}</div>
+                <div className="text-sm text-gray-600">Subtasks Done</div>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${stats.progress}%` }}
+                />
+              </div>
+            </div>
+
+            {hasGenerated && (
+              <div className="flex gap-2 mt-4">
+                <Button variant="outline" onClick={handleClearTasks} size="sm">
+                  Clear All Tasks
+                </Button>
+                <Button variant="outline" onClick={handleGenerateTasks} size="sm" disabled={isGenerating}>
+                  Regenerate Tasks
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Task Board */}
+      {tasks.length > 0 && (
+        <DndProvider backend={HTML5Backend}>
+          <div className="flex space-x-4 overflow-x-auto pb-4">
+            {columns.map((col) => (
+              <Column
+                key={col.id}
+                title={`${col.icon} ${col.title}`}
+                columnId={col.id}
+                tasks={tasks.filter((task) => task.column === col.id)}
+                onDropTask={handleDropTask}
+                onMoveSubtask={handleMoveSubtask}
+                onToggleTask={handleToggleTask}
+                onToggleSubtask={handleToggleSubtask}
+              />
+            ))}
           </div>
-        )}
-      </div>
+        </DndProvider>
+      )}
+
+      {/* Empty State */}
+      {tasks.length === 0 && hasGenerated && (
+        <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
+          <AlertCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks generated</h3>
+          <p className="text-gray-600 mb-4">Something went wrong with task generation. Please try again.</p>
+          <Button onClick={handleGenerateTasks} disabled={isGenerating}>
+            Try Again
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

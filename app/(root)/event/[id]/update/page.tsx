@@ -1,6 +1,9 @@
 // app/event/[id]/update/page.tsx
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import EventForm from "@/components/shared/EventForm";
 import { getEventById } from "@/lib/actions/event.action";
 import { getUserByClerkId } from "@/lib/actions/user.action";
@@ -34,22 +37,32 @@ const UpdateEventPage = async ({ params }: UpdateEventPageProps) => {
   const serializedEvent = JSON.parse(JSON.stringify(event));
 
   return (
-    <div className="bg-gradient-to-br from-red-50 via-white to-rose-50 min-h-screen pb-20">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium mb-6">
-            ✨ Update Your Event
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header Section */}
+      <section className="bg-gradient-to-r from-blue-500 to-blue-600 py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Button asChild variant="outline" size="sm" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Link href={`/event/${id}/manage`}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Link href={`/event/${id}`}>
+                View Event Page
+              </Link>
+            </Button>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
-            Update Event
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Make changes to your event and keep your community informed.
+          <h1 className="text-3xl font-bold text-white">Update Event</h1>
+          <p className="text-blue-100 mt-2">
+            Make changes to your event and keep your community informed
           </p>
         </div>
+      </section>
 
-        {/* Form Section */}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
           <EventForm
             userId={user._id}
