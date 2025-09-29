@@ -272,7 +272,7 @@ const LikeCartButton = ({ event, user, likedEvent, option }: LikeCartButtonProps
             className="flex gap-1 rounded-full"
           >
             <MdOutlineDoNotDisturbOn className="h-5 w-5" />
-            Sold Out
+            {isEventPast ? "Event Ended" : "Sold Out"}
           </Button>
         )}
       </div>

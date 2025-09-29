@@ -776,11 +776,29 @@ export async function fixEventCapacities() {
 			}
 		);
 
+		// Fix inconsistent data: events with limited totalCapacity but unlimited ticketsLeft
+		const result3 = await Event.updateMany(
+			{
+				totalCapacity: { $gt: 0 },
+				ticketsLeft: -1,
+			},
+			[
+				{
+					$set: {
+						ticketsLeft: '$totalCapacity',
+					},
+				},
+			]
+		);
+
 		console.log(`Fixed ${result1.modifiedCount} events with 0 capacity`);
 		console.log(
 			`Fixed ${result2.modifiedCount} unlimited capacity events marked as sold out`
 		);
-		return { result1, result2 };
+		console.log(
+			`Fixed ${result3.modifiedCount} events with inconsistent capacity data`
+		);
+		return { result1, result2, result3 };
 	} catch (error) {
 		console.log(error);
 		throw error;
