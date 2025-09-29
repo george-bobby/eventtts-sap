@@ -14,6 +14,23 @@ import {
 	scheduleFeedbackEmails,
 } from './feedback.action';
 
+// Import related models for cleanup
+import {
+	PhotoGallery,
+	Photo,
+	PhotoAccess,
+	PhotoComment,
+} from '../models/gallery.model';
+import { CertificateTemplate, Certificate } from '../models/certificate.model';
+import {
+	FeedbackTemplate,
+	FeedbackResponse,
+	EmailSchedule,
+} from '../models/feedback.model';
+import { Stakeholder } from '../models/stakeholder.model';
+import { EventUpdate } from '../models/eventupdate.model';
+import { QRCode } from '../models/qrcode.model';
+
 // -------------------------------
 // TYPES
 // -------------------------------
@@ -566,18 +583,108 @@ export async function updateEvent({
 export async function deleteEventById(eventId: string) {
 	try {
 		await connectToDatabase();
-		await Event.findByIdAndDelete(eventId);
+
+		// Validate eventId
+		if (!eventId || !Types.ObjectId.isValid(eventId)) {
+			throw new Error('Invalid event ID provided');
+		}
+
+		// Check if event exists
+		const event = await Event.findById(eventId);
+		if (!event) {
+			throw new Error('Event not found');
+		}
+
+		// Convert eventId to ObjectId for queries
+		const eventObjectId = new Types.ObjectId(eventId);
+
+		// Delete in proper order to avoid foreign key constraint issues
+		console.log(
+			`Starting deletion of event ${eventId} and all related data...`
+		);
+
+		// 1. Delete photos and photo-related data
+		console.log('Deleting photo gallery data...');
+		const galleries = await PhotoGallery.find({ event: eventObjectId });
+		const galleryIds = galleries.map((g) => g._id);
+
+		if (galleryIds.length > 0) {
+			const photos = await Photo.find({ gallery: { $in: galleryIds } });
+			const photoIds = photos.map((p) => p._id);
+
+			if (photoIds.length > 0) {
+				await PhotoComment.deleteMany({ photo: { $in: photoIds } });
+			}
+			await PhotoAccess.deleteMany({ gallery: { $in: galleryIds } });
+			await Photo.deleteMany({ gallery: { $in: galleryIds } });
+			await PhotoGallery.deleteMany({ event: eventObjectId });
+		}
+
+		// 2. Delete certificates
+		console.log('Deleting certificate data...');
+		await Certificate.deleteMany({ event: eventObjectId });
+		await CertificateTemplate.deleteMany({ event: eventObjectId });
+
+		// 3. Delete feedback data
+		console.log('Deleting feedback data...');
+		await FeedbackResponse.deleteMany({ event: eventObjectId });
+		await FeedbackTemplate.deleteMany({ event: eventObjectId });
+		await EmailSchedule.deleteMany({ event: eventObjectId });
+
+		// 4. Delete stakeholders
+		console.log('Deleting stakeholder data...');
+		await Stakeholder.deleteMany({ event: eventObjectId });
+
+		// 5. Delete event updates
+		console.log('Deleting event updates...');
+		await EventUpdate.deleteMany({ event: eventObjectId });
+
+		// 6. Delete QR codes
+		console.log('Deleting QR codes...');
+		await QRCode.deleteMany({ event: eventObjectId });
+
+		// 7. Delete orders (tickets)
+		console.log('Deleting orders...');
+		await Order.deleteMany({ event: eventId });
+
+		// 8. Delete sub-events if this is a parent event
+		console.log('Deleting sub-events...');
+		await Event.deleteMany({ parentEvent: eventObjectId });
+
+		// 9. Remove event references from tags and users
+		console.log('Cleaning up references...');
 		await Tag.updateMany({ events: eventId }, { $pull: { events: eventId } });
 		await User.updateMany(
 			{ likedEvents: eventId },
 			{ $pull: { likedEvents: eventId } }
 		);
-		await Order.deleteMany({ event: eventId });
+
+		// 10. Finally, delete the main event
+		console.log('Deleting main event...');
+		await Event.findByIdAndDelete(eventId);
+
+		// Revalidate paths
 		revalidatePath('/');
 		revalidatePath('/profile');
+		revalidatePath('/explore-events');
+
+		console.log(`Event ${eventId} and all related data successfully deleted.`);
+		return { success: true };
 	} catch (error) {
-		console.error(error);
-		throw new Error('Failed to delete event');
+		console.error('Error deleting event:', error);
+
+		// Provide more specific error messages
+		if (error instanceof Error) {
+			if (error.message.includes('Event not found')) {
+				throw new Error('Event not found or already deleted');
+			} else if (error.message.includes('Invalid event ID')) {
+				throw new Error('Invalid event ID provided');
+			}
+		}
+
+		throw new Error(
+			'Failed to delete event. Please try again or contact support.'
+		);
 	}
 }
 

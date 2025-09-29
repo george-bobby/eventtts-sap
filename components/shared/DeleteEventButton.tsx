@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,31 +13,51 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { deleteEventById } from "@/lib/actions/event.action";
+import { Loader2 } from "lucide-react";
 
 const DeleteEventButton = ({ event }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
+
   const handleDeleteEvent = async (eventId: string) => {
     try {
-      await deleteEventById(eventId);
+      setIsDeleting(true);
 
-      toast({
-        title: "Event deleted successfully.",
-      });
+      const result = await deleteEventById(eventId);
+
+      if (result?.success) {
+        toast({
+          title: "Event deleted successfully!",
+          description: "The event and all related data have been permanently removed.",
+        });
+
+        setIsOpen(false);
+        // Redirect to profile page after successful deletion
+        router.push("/profile");
+      } else {
+        throw new Error("Delete operation failed");
+      }
     } catch (error: any) {
+      console.error('Delete event error:', error);
       toast({
         variant: "destructive",
-        title: "Something went wrong.",
-        description: error.message,
+        title: "Failed to delete event",
+        description: error.message || "An unexpected error occurred while deleting the event.",
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           variant="destructive"
           size={"sm"}
           className="m-1 h-fit hover:scale-95 p-1"
+          disabled={isDeleting}
         >
           Delete
         </Button>
@@ -44,20 +65,46 @@ const DeleteEventButton = ({ event }: any) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription className="flex flex-col gap-1 max-sm:items-center">
-            <p>This action cannot be undone.</p>
-            <p>This will permanently delete the event and all related data.</p>
-            <p>
-              Make sure to refund tickets of all customers, otherwise legal
-              actions will be taken.
-            </p>
-            <Button
-              variant="destructive"
-              className="hover:scale-95 w-fit"
-              onClick={() => handleDeleteEvent(event._id)}
-            >
-              Delete Event
-            </Button>
+          <DialogDescription className="flex flex-col gap-4 max-sm:items-center">
+            <div className="space-y-2 text-sm text-gray-600">
+              <p><strong>⚠️ This action cannot be undone.</strong></p>
+              <p>This will permanently delete:</p>
+              <ul className="list-disc list-inside space-y-1 pl-2">
+                <li>Event details and registration data</li>
+                <li>All attendee information and tickets</li>
+                <li>Photo galleries and uploaded images</li>
+                <li>Generated certificates and templates</li>
+                <li>Feedback responses and analytics</li>
+                <li>Event updates and communications</li>
+                <li>QR codes and verification data</li>
+              </ul>
+              <p className="text-red-600 font-medium">
+                📋 Make sure to refund tickets to all customers before deletion to avoid legal issues.
+              </p>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleDeleteEvent(event._id)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete Event"
+                )}
+              </Button>
+            </div>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
