@@ -71,12 +71,18 @@ export async function createTicket(params: CreateTicketParams) {
 
 		// Generate unique 6-digit entry code
 		let entryCode = generateEntryCode();
-		
+
 		// Ensure entry code is unique for this event
-		let existingTicket = await Ticket.findOne({ entryCode, event: params.eventId });
+		let existingTicket = await Ticket.findOne({
+			entryCode,
+			event: params.eventId,
+		});
 		while (existingTicket) {
 			entryCode = generateEntryCode();
-			existingTicket = await Ticket.findOne({ entryCode, event: params.eventId });
+			existingTicket = await Ticket.findOne({
+				entryCode,
+				event: params.eventId,
+			});
 		}
 
 		// Set expiration date (default to event end date + 1 day)
@@ -145,7 +151,10 @@ export async function getTicketByTicketId(ticketId: string) {
 		await connectToDatabase();
 
 		const ticket = await Ticket.findOne({ ticketId })
-			.populate('event', 'title startDate endDate location photo startTime endTime')
+			.populate(
+				'event',
+				'title startDate endDate location photo startTime endTime'
+			)
 			.populate('user', 'firstName lastName email');
 
 		if (!ticket) {
@@ -167,7 +176,10 @@ export async function getUserEventTickets(userId: string, eventId: string) {
 		await connectToDatabase();
 
 		const tickets = await Ticket.find({ user: userId, event: eventId })
-			.populate('event', 'title startDate endDate location photo startTime endTime')
+			.populate(
+				'event',
+				'title startDate endDate location photo startTime endTime'
+			)
 			.populate('order', 'totalTickets totalAmount')
 			.sort({ createdAt: -1 });
 
@@ -179,15 +191,34 @@ export async function getUserEventTickets(userId: string, eventId: string) {
 }
 
 /**
+ * Get all tickets for an event (for organizers)
+ */
+export async function getEventTickets(params: { eventId: string }) {
+	try {
+		await connectToDatabase();
+
+		const tickets = await Ticket.find({ event: params.eventId })
+			.populate('event', 'title startDate endDate location')
+			.populate('user', 'firstName lastName email')
+			.sort({ createdAt: -1 });
+
+		return JSON.parse(JSON.stringify(tickets));
+	} catch (error) {
+		console.error('Error getting event tickets:', error);
+		throw error;
+	}
+}
+
+/**
  * Verify a ticket using entry code
  */
 export async function verifyTicket(params: VerifyTicketParams) {
 	try {
 		await connectToDatabase();
 
-		const ticket = await Ticket.findOne({ 
+		const ticket = await Ticket.findOne({
 			entryCode: params.entryCode,
-			event: params.eventId 
+			event: params.eventId,
 		})
 			.populate('event', 'title startDate endDate location')
 			.populate('user', 'firstName lastName email');
@@ -293,10 +324,7 @@ export async function generateTicketsForEvent(
 					});
 					results.push(ticket);
 				} catch (error) {
-					console.error(
-						`Error creating ticket for order ${order._id}:`,
-						error
-					);
+					console.error(`Error creating ticket for order ${order._id}:`, error);
 				}
 			}
 		}
@@ -308,4 +336,3 @@ export async function generateTicketsForEvent(
 		throw error;
 	}
 }
-

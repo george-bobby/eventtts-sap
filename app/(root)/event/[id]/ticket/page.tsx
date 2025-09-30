@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, Clock, MapPin, Ticket as TicketIcon, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Ticket as TicketIcon, CheckCircle, QrCode } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { getUserEventTickets } from '@/lib/actions/ticket.action';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
 import { ITicket } from '@/lib/models/ticket.model';
 import Image from 'next/image';
+import { TicketQRCode } from '@/components/ui/qr-code';
 
 interface TicketPageProps {
   params: Promise<{ id: string }>;
@@ -174,14 +175,38 @@ export default async function TicketPage({ params }: TicketPageProps) {
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
-                {/* Entry Code - Prominent Display */}
-                <div className="bg-white border-4 border-dashed border-indigo-400 rounded-xl p-6 mb-6 text-center">
-                  <p className="text-sm font-semibold text-indigo-600 mb-2 uppercase tracking-wide">Entry Code</p>
-                  <p className="text-5xl font-bold text-indigo-600 tracking-[0.5em] font-mono">
-                    {ticket.entryCode}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-3">
-                    Show this code at the event entrance
+                {/* Entry Code - Prominent Display with QR Code */}
+                <div className="bg-white border-4 border-dashed border-indigo-400 rounded-xl p-6 mb-6">
+                  <p className="text-sm font-semibold text-indigo-600 mb-4 uppercase tracking-wide text-center">Entry Code</p>
+
+                  {/* Responsive layout: QR code and text side by side on larger screens, stacked on mobile */}
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+                    {/* QR Code */}
+                    <div className="flex flex-col items-center">
+                      <TicketQRCode entryCode={ticket.entryCode} size={120} />
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                        <QrCode className="w-3 h-3" />
+                        Scan QR Code
+                      </p>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="hidden md:block w-px h-24 bg-gray-300"></div>
+                    <div className="md:hidden w-24 h-px bg-gray-300"></div>
+
+                    {/* Text Code */}
+                    <div className="text-center">
+                      <p className="text-4xl md:text-5xl font-bold text-indigo-600 tracking-[0.3em] font-mono">
+                        {ticket.entryCode}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Or show this code
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-4 text-center">
+                    Show either the QR code or entry code at the event entrance
                   </p>
                 </div>
 
@@ -233,11 +258,11 @@ export default async function TicketPage({ params }: TicketPageProps) {
             <ul className="space-y-2 text-sm text-yellow-900">
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 mt-0.5">•</span>
-                <span>Please save this page or take a screenshot of your entry code{tickets.length > 1 ? 's' : ''}</span>
+                <span>Please save this page or take a screenshot of your ticket{tickets.length > 1 ? 's' : ''}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 mt-0.5">•</span>
-                <span>You'll need to provide your entry code at the event entrance for verification</span>
+                <span>You can use either the QR code or entry code for verification at the event entrance</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 mt-0.5">•</span>

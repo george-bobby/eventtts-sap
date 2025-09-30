@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Loader2, Search, User, Mail, Calendar, Clock, MapPin } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CheckCircle, XCircle, Loader2, Search, User, Mail, Calendar, Clock, MapPin, QrCode, Keyboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { QRScanner } from '@/components/ui/qr-scanner';
 
 interface TicketVerificationProps {
   eventId: string;
@@ -44,9 +46,45 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
   const [entryCode, setEntryCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
+  const [activeTab, setActiveTab] = useState('manual');
   const { toast } = useToast();
 
-  const handleVerify = async () => {
+  const verifyTicketCode = async (code: string) => {
+    if (!code || code.length !== 6) {
+      throw new Error('Invalid entry code format');
+    }
+
+    const response = await fetch('/api/tickets/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        entryCode: code,
+        eventId,
+      }),
+    });
+
+    const data = await response.json();
+    setResult(data);
+
+    if (data.success) {
+      toast({
+        title: 'Ticket Verified! ✅',
+        description: `Welcome ${data.ticket?.user.firstName} ${data.ticket?.user.lastName}`,
+      });
+      return data;
+    } else {
+      toast({
+        title: 'Verification Failed',
+        description: data.message,
+        variant: 'destructive',
+      });
+      throw new Error(data.message);
+    }
+  };
+
+  const handleManualVerify = async () => {
     if (!entryCode || entryCode.length !== 6) {
       toast({
         title: 'Invalid Entry Code',
@@ -60,48 +98,37 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
     setResult(null);
 
     try {
-      const response = await fetch('/api/tickets/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          entryCode,
-          eventId,
-        }),
-      });
-
-      const data = await response.json();
-      setResult(data);
-
-      if (data.success) {
-        toast({
-          title: 'Ticket Verified! ✅',
-          description: `Welcome ${data.ticket?.user.firstName} ${data.ticket?.user.lastName}`,
-        });
-        setEntryCode(''); // Clear input on success
-      } else {
-        toast({
-          title: 'Verification Failed',
-          description: data.message,
-          variant: 'destructive',
-        });
-      }
+      await verifyTicketCode(entryCode);
+      setEntryCode(''); // Clear input on success
     } catch (error) {
       console.error('Error verifying ticket:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to verify ticket. Please try again.',
-        variant: 'destructive',
-      });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleQRScan = async (scannedData: string) => {
+    // Extract 6-digit code from scanned data
+    const codeMatch = scannedData.match(/\d{6}/);
+    if (!codeMatch) {
+      throw new Error('No valid 6-digit code found in QR code');
+    }
+
+    const code = codeMatch[0];
+    await verifyTicketCode(code);
+  };
+
+  const handleQRError = (error: string) => {
+    toast({
+      title: 'QR Scan Error',
+      description: error,
+      variant: 'destructive',
+    });
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleVerify();
+      handleManualVerify();
     }
   };
 
@@ -122,7 +149,7 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
 
   return (
     <div className="space-y-6">
-      {/* Verification Input Card */}
+      {/* Verification Methods Card */}
       <Card className="border-2 border-indigo-100">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
@@ -130,43 +157,74 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
             Verify Ticket
           </CardTitle>
           <CardDescription>
-            Enter the 6-digit entry code to verify attendee tickets for {eventTitle}
+            Choose your preferred verification method for {eventTitle}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-3">
-            <Input
-              type="text"
-              placeholder="Enter 6-digit code"
-              value={entryCode}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                setEntryCode(value);
-              }}
-              onKeyPress={handleKeyPress}
-              className="text-2xl font-mono tracking-widest text-center"
-              maxLength={6}
-              disabled={loading}
-            />
-            <Button
-              onClick={handleVerify}
-              disabled={loading || entryCode.length !== 6}
-              size="lg"
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                <>
-                  <Search className="w-5 h-5 mr-2" />
-                  Verify
-                </>
-              )}
-            </Button>
-          </div>
+          <Tabs defaultValue="manual" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="manual" className="flex items-center gap-2">
+                <Keyboard className="w-4 h-4" />
+                Manual Entry
+              </TabsTrigger>
+              <TabsTrigger value="qr" className="flex items-center gap-2">
+                <QrCode className="w-4 h-4" />
+                QR Scanner
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="manual" className="mt-4">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">Enter the 6-digit entry code manually</p>
+                <div className="flex gap-3">
+                  <Input
+                    type="text"
+                    placeholder="Enter 6-digit code"
+                    value={entryCode}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setEntryCode(value);
+                    }}
+                    onKeyDown={handleKeyPress}
+                    className="text-2xl font-mono tracking-widest text-center"
+                    maxLength={6}
+                    disabled={loading}
+                  />
+                  <Button
+                    onClick={handleManualVerify}
+                    disabled={loading || entryCode.length !== 6}
+                    size="lg"
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-5 h-5 mr-2" />
+                        Verify
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="qr" className="mt-4">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">Scan the QR code from the attendee's ticket</p>
+                <QRScanner
+                  onScan={handleQRScan}
+                  onError={handleQRError}
+                  isLoading={loading}
+                  title="Scan Ticket QR Code"
+                  description="Position the QR code within the camera view"
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
