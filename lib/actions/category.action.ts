@@ -1,21 +1,23 @@
-"use server"
+'use server';
 
-import { connectToDatabase } from "../dbconnection";
-import Category from "../models/category.model";
+import { connectToDatabase } from '../dbconnection';
+import Category from '../models/category.model';
 
 export async function getCategoryByName(searchParams: string) {
-    try {
-        await connectToDatabase();
+	try {
+		await connectToDatabase();
 
-        const category = await Category.findOne({ name: { $regex: new RegExp(searchParams, 'i') } });
+		const category = await Category.findOne({
+			name: { $regex: new RegExp(searchParams, 'i') },
+		});
 
-        if (!category) {
-            return null;
-        }
+		if (!category) {
+			return null;
+		}
 
-        return JSON.parse(JSON.stringify(category));
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }
+		return JSON.parse(JSON.stringify(category));
+	} catch (error) {
+		console.log(error);
+		throw error;
+	}
 }

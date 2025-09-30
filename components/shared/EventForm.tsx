@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, ControllerRenderProps, FieldPath } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,21 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { categories } from "@/constants/categories";
-import { campusLocations } from "@/lib/campus-data";
+// Note: Temporary workaround for TypeScript module resolution issue
+// import { campusLocations } from "@/lib/campus-data";
+const campusLocations = [
+	{ name: 'Main Gate', lat: 12.863788, lng: 77.434897 },
+	{ name: 'Cross Road', lat: 12.86279, lng: 77.437411 },
+	{ name: 'Block 1', lat: 12.863154, lng: 77.437718 },
+	{ name: 'Students Square', lat: 12.862314, lng: 77.43824 },
+	{ name: 'Open Auditorium', lat: 12.862510, lng: 77.438496 },
+	{ name: 'Block 4', lat: 12.862211, lng: 77.43886 },
+	{ name: 'Xpress Cafe', lat: 12.862045, lng: 77.439374 },
+	{ name: 'Block 6', lat: 12.862103, lng: 77.439809 },
+	{ name: 'Amphi Theater', lat: 12.861424, lng: 77.438057 },
+	{ name: 'PU Block', lat: 12.860511, lng: 77.437249 },
+	{ name: 'Architecture Block', lat: 12.860132, lng: 77.438592 },
+];
 import { createEvent, updateEvent } from "@/lib/actions/event.action";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +96,9 @@ const formSchema = z.object({
 	feedbackEnabled: z.boolean().optional(),
 	feedbackHours: z.number().min(1).max(168).optional(), // 1 hour to 1 week
 });
+
+// Type alias for the form schema
+type EventFormValues = z.infer<typeof formSchema>;
 
 // ---------------- INTERFACES ----------------
 interface IEvent {
@@ -182,7 +199,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 		};
 	};
 
-	const form = useForm<z.infer<typeof formSchema>>({
+	const form = useForm<EventFormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: getInitialValues(),
 	});
@@ -199,7 +216,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 	}, [event, type, form]);
 
 	// ---------------- SUBMIT ----------------
-	async function onSubmit(values: z.infer<typeof formSchema>) {
+	async function onSubmit(values: EventFormValues) {
 		setIsSubmitting(true);
 		let uploadedImageUrl = values.photo || "";
 
@@ -259,7 +276,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 	}
 
 	// ---------------- TAG HANDLING ----------------
-	const handleKeyDown = (e: React.KeyboardEvent, field: any) => {
+	const handleKeyDown = (e: React.KeyboardEvent, field: ControllerRenderProps<EventFormValues, "tags">) => {
 		if ((e.key === "Enter" && field.name === "tags") || (e.key === "," && field.name === "tags")) {
 			e.preventDefault();
 			const tagInput = e.target as HTMLInputElement;
@@ -280,7 +297,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 		}
 	};
 
-	const removeTagHandler = (tag: string | { _id: string; name: string }, field: any) => {
+	const removeTagHandler = (tag: string | { _id: string; name: string }, field: ControllerRenderProps<EventFormValues, "tags">) => {
 		const newTags = field.value.filter((t: any) =>
 			typeof t === "object" && typeof tag === "object" ? t._id !== tag._id : t !== tag
 		);
@@ -295,7 +312,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 				<FormField
 					control={form.control}
 					name="title"
-					render={({ field }: any) => (
+					render={({ field }: { field: ControllerRenderProps<EventFormValues, "title"> }) => (
 						<FormItem className="w-full">
 							<FormControl>
 								<Input placeholder="Event title" {...field} className="input-field" />
@@ -311,7 +328,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 					<FormField
 						control={form.control}
 						name="category"
-						render={({ field }: any) => (
+						render={({ field }: { field: ControllerRenderProps<EventFormValues, "category"> }) => (
 							<FormItem className="w-full md:w-1/2">
 								<FormLabel className="text-gray-700 font-medium">Category</FormLabel>
 								<FormControl>
@@ -348,7 +365,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 					<FormField
 						control={form.control}
 						name="tags"
-						render={({ field }: any) => (
+						render={({ field }: { field: ControllerRenderProps<EventFormValues, "tags"> }) => (
 							<FormItem className="w-full md:w-1/2">
 								<FormLabel className="text-gray-700 font-medium">Tags</FormLabel>
 								<FormControl>
@@ -384,7 +401,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 				<FormField
 					control={form.control}
 					name="description"
-					render={({ field }: any) => (
+					render={({ field }: { field: ControllerRenderProps<EventFormValues, "description"> }) => (
 						<FormItem className="w-full">
 							<FormControl>
 								<Textarea placeholder="Event description" {...field} className="textarea rounded-2xl" />
@@ -398,13 +415,13 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 				<FormField
 					control={form.control}
 					name="photo"
-					render={({ field }: any) => (
+					render={({ field }: { field: ControllerRenderProps<EventFormValues, "photo"> }) => (
 						<FormItem className="w-full">
 							<FormLabel>Event Image (Optional)</FormLabel>
 							<FormControl>
 								<FileUploader
 									onFieldChange={field.onChange}
-									imageUrl={field.value}
+									imageUrl={field.value || ""}
 									setFiles={setFiles}
 								/>
 							</FormControl>
@@ -454,7 +471,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 										<SelectValue placeholder="Select Campus Location" className="text-gray-700" />
 									</SelectTrigger>
 									<SelectContent className="max-h-60 w-full bg-white border border-gray-200 rounded-lg shadow-xl">
-										{campusLocations.map((location, index) => (
+										{campusLocations.map((location: { name: string; lat: number; lng: number }, index: number) => (
 											<SelectItem
 												key={index}
 												value={location.name || `location-${index}`}
@@ -702,7 +719,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 						<FormField
 							control={form.control}
 							name="feedbackEnabled"
-							render={({ field }) => (
+							render={({ field }: { field: ControllerRenderProps<EventFormValues, "feedbackEnabled"> }) => (
 								<FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-6">
 									<FormControl>
 										<Checkbox
@@ -716,7 +733,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 											Enable feedback collection
 										</FormLabel>
 										<FormDescription className="text-gray-600">
-											Automatically send feedback requests to attendees after the event ends
+											You can configure feedback questions in the event management page after creating the event.
 										</FormDescription>
 									</div>
 								</FormItem>
@@ -728,7 +745,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 							<FormField
 								control={form.control}
 								name="feedbackHours"
-								render={({ field }) => (
+								render={({ field }: { field: ControllerRenderProps<EventFormValues, "feedbackHours"> }) => (
 									<FormItem className="w-full max-w-sm">
 										<FormLabel className="text-base font-medium text-gray-900">
 											Send feedback email after
@@ -754,9 +771,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 												<SelectItem value="168">1 week</SelectItem>
 											</SelectContent>
 										</Select>
-										<FormDescription className="text-gray-600">
-											How long after the event ends should feedback emails be sent. You can configure feedback questions in the event management page after creating the event.
-										</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}

@@ -79,44 +79,12 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       iconColor: 'text-purple-600'
     },
     {
-      title: 'Stakeholders',
-      description: 'Manage speakers, volunteers, and participants',
-      icon: UserCheck,
-      href: `/event/${id}/stakeholders`,
-      color: 'bg-teal-500 hover:bg-teal-600',
-      iconColor: 'text-teal-600'
-    },
-    {
       title: 'Event Analytics',
       description: 'View comprehensive event performance metrics',
       icon: BarChart3,
       href: `/event/${id}/analytics`,
       color: 'bg-cyan-500 hover:bg-cyan-600',
       iconColor: 'text-cyan-600'
-    },
-    {
-      title: 'Event Updates',
-      description: 'Send notifications and updates to attendees',
-      icon: Bell,
-      href: `/event/${id}/notifications`,
-      color: 'bg-emerald-500 hover:bg-emerald-600',
-      iconColor: 'text-emerald-600'
-    },
-    {
-      title: 'Certificates',
-      description: 'Generate and manage event certificates',
-      icon: Award,
-      href: `/event/${id}/certificates`,
-      color: 'bg-yellow-500 hover:bg-yellow-600',
-      iconColor: 'text-yellow-600'
-    },
-    {
-      title: 'Photo Gallery',
-      description: 'Manage event photos and galleries',
-      icon: Camera,
-      href: `/event/${id}/gallery`,
-      color: 'bg-pink-500 hover:bg-pink-600',
-      iconColor: 'text-pink-600'
     },
     {
       title: 'Plan Event',
@@ -133,22 +101,54 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       href: `/event/${id}/verify`,
       color: 'bg-slate-500 hover:bg-slate-600',
       iconColor: 'text-slate-600'
-    }
+    },
+    {
+      title: 'Event Notifications',
+      description: 'Send notifications and updates to attendees',
+      icon: Bell,
+      href: `/event/${id}/notifications`,
+      color: 'bg-emerald-500 hover:bg-emerald-600',
+      iconColor: 'text-emerald-600'
+    },
+    {
+      title: 'Photo Gallery',
+      description: 'Manage event photos and galleries',
+      icon: Camera,
+      href: `/event/${id}/gallery`,
+      color: 'bg-pink-500 hover:bg-pink-600',
+      iconColor: 'text-pink-600'
+    },
+    {
+      title: 'Certificates',
+      description: 'Generate and manage event certificates',
+      icon: Award,
+      href: `/event/${id}/certificates`,
+      color: 'bg-yellow-500 hover:bg-yellow-600',
+      iconColor: 'text-yellow-600'
+    },
+    {
+      title: 'Stakeholders',
+      description: 'Manage speakers, volunteers, and participants',
+      icon: UserCheck,
+      href: `/event/${id}/stakeholders`,
+      color: 'bg-teal-500 hover:bg-teal-600',
+      iconColor: 'text-teal-600'
+    },
   ];
 
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-indigo-500 to-purple-600 py-8">
+      <section className="bg-gradient-to-r from-red-500 to-rose-600 py-8">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-6">
-            <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">
+            <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
               <Link href="/dashboard">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">
+            <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
               <Link href={`/event/${id}`}>
                 View Event Page
               </Link>
@@ -157,7 +157,7 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
 
           <div className="text-white">
             <h1 className="text-4xl font-bold mb-4">Event Management Dashboard</h1>
-            <p className="text-indigo-100 text-lg mb-6">
+            <p className="text-red-100 text-lg mb-6">
               Manage all aspects of your event from this central dashboard
             </p>
           </div>
@@ -225,7 +225,7 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
                       <option.icon className={`w-6 h-6 ${option.iconColor}`} />
                     </div>
                   </div>
-                  <h3 className="font-semibold text-lg mb-2 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="font-semibold text-lg mb-2 group-hover:text-red-600 transition-colors">
                     {option.title}
                   </h3>
                   <p className="text-gray-600 text-sm">

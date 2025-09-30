@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { deleteEventById } from "@/lib/actions/event.action";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 
 interface DeleteEventButtonProps {
   eventId: string;
@@ -58,12 +58,12 @@ const DeleteEventButton = ({ eventId }: DeleteEventButtonProps) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="destructive"
-          size={"sm"}
-          className="m-1 h-fit hover:scale-95 p-1"
+          size="sm"
+          className="bg-red-600 hover:bg-red-700 text-white shadow-lg flex items-center gap-1"
           disabled={isDeleting}
         >
-          Delete
+          <Trash2 className="w-3 h-3" />
+          Delete Event
         </Button>
       </DialogTrigger>
       <DialogContent>

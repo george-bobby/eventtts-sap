@@ -68,6 +68,8 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
               Manage Event
             </Link>
           </Button>
+          {/* Delete button below manage event button for non-dashboard pages */}
+          {page !== "dashboard" && <DeleteEventButton eventId={String(event._id)} />}
         </div>
       )}
 
@@ -182,9 +184,6 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
               Unlimited capacity
             </span>
           )}
-
-          {/* Delete button on non-dashboard pages only */}
-          {page !== "dashboard" && isOrganizer && <DeleteEventButton eventId={String(event._id)} />}
         </div>
       </div>
     </div>

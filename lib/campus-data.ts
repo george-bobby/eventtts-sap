@@ -1,10 +1,16 @@
 // Campus location data with coordinates
-export const campusLocations = [
+export interface CampusLocation {
+	name: string;
+	lat: number;
+	lng: number;
+}
+
+export const campusLocations: CampusLocation[] = [
 	{ name: 'Main Gate', lat: 12.863788, lng: 77.434897 },
 	{ name: 'Cross Road', lat: 12.86279, lng: 77.437411 },
 	{ name: 'Block 1', lat: 12.863154, lng: 77.437718 },
 	{ name: 'Students Square', lat: 12.862314, lng: 77.43824 },
-	{ name: 'Open Auditorium', lat: 12.862510, lng: 77.438496 },
+	{ name: 'Open Auditorium', lat: 12.86251, lng: 77.438496 },
 	{ name: 'Block 4', lat: 12.862211, lng: 77.43886 },
 	{ name: 'Xpress Cafe', lat: 12.862045, lng: 77.439374 },
 	{ name: 'Block 6', lat: 12.862103, lng: 77.439809 },

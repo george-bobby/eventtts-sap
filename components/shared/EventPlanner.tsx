@@ -4,8 +4,8 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Sparkles, Clock, AlertCircle, Calendar, MapPin, Users } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Clock, AlertCircle, RefreshCw, Trash2, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Define types
@@ -62,16 +62,23 @@ const SubtaskItem: React.FC<{
   return (
     <div
       ref={drag as any}
-      className={`p-2 ml-4 mb-1 bg-gray-50 border rounded cursor-move hover:bg-gray-100 transition-colors ${isDragging ? 'opacity-50' : ''}`}
+      className={`p-3 ml-4 mb-2 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg cursor-move hover:shadow-sm transition-all duration-150 ${isDragging ? 'opacity-50 scale-95' : 'hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200'
+        }`}
     >
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={subtask.completed}
-          onChange={() => onToggleSubtask(taskId, subtask.id)}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-        <span className={`text-sm ${subtask.completed ? 'line-through text-gray-500' : ''}`}>
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <input
+            type="checkbox"
+            checked={subtask.completed}
+            onChange={() => onToggleSubtask(taskId, subtask.id)}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
+          />
+          {subtask.completed && (
+            <CheckCircle2 className="absolute -top-0.5 -left-0.5 h-5 w-5 text-blue-600 pointer-events-none" />
+          )}
+        </div>
+        <span className={`text-sm font-medium transition-all ${subtask.completed ? 'line-through text-gray-500' : 'text-gray-700'
+          }`}>
           {subtask.content}
         </span>
       </div>
@@ -151,17 +158,29 @@ const TaskCard: React.FC<{
   return (
     <div
       ref={drag as any}
-      className={`p-4 mb-3 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-move ${isDragging ? 'opacity-50' : ''} ${task.completed ? 'bg-green-50 border-green-200' : ''}`}
+      className={`p-4 mb-3 bg-white border-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 cursor-move transform hover:-translate-y-1 ${isDragging ? 'opacity-50 rotate-2' : ''
+        } ${task.completed
+          ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200'
+          : 'border-gray-200 hover:border-gray-300'
+        }`}
     >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2 flex-1">
-          <input
-            type="checkbox"
-            checked={task.completed}
-            onChange={() => onToggleTask(task.id)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <h4 className={`font-medium text-gray-900 flex-1 ${task.completed ? 'line-through text-gray-500' : ''}`}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={task.completed}
+              onChange={() => onToggleTask(task.id)}
+              className="h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded-md transition-colors"
+            />
+            {task.completed && (
+              <CheckCircle2 className="absolute -top-0.5 -left-0.5 h-6 w-6 text-emerald-600 pointer-events-none" />
+            )}
+          </div>
+          <h4 className={`font-semibold flex-1 transition-all ${task.completed
+            ? 'line-through text-gray-500'
+            : 'text-gray-900'
+            }`}>
             {task.content}
           </h4>
         </div>
@@ -217,33 +236,34 @@ const Column: React.FC<{
 
   const getColumnColor = () => {
     switch (columnId) {
-      case 'planning': return 'border-t-blue-500 bg-blue-50/50';
-      case 'developing': return 'border-t-yellow-500 bg-yellow-50/50';
-      case 'reviewing': return 'border-t-orange-500 bg-orange-50/50';
-      case 'finished': return 'border-t-green-500 bg-green-50/50';
-      default: return 'border-t-gray-500 bg-gray-50/50';
+      case 'planning': return 'border-t-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50';
+      case 'developing': return 'border-t-orange-500 bg-gradient-to-br from-orange-50 to-amber-50';
+      case 'reviewing': return 'border-t-purple-500 bg-gradient-to-br from-purple-50 to-violet-50';
+      case 'finished': return 'border-t-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50';
+      default: return 'border-t-gray-500 bg-gradient-to-br from-gray-50 to-gray-100';
     }
   };
 
   const completedTasks = tasks.filter(task => task.completed).length;
 
   return (
-    <div ref={drop as any} className={`w-1/4 p-4 border-2 border-dashed border-transparent rounded-lg transition-colors ${isOver ? 'border-blue-300 bg-blue-50' : getColumnColor()}`}>
-      <div className="bg-white rounded-lg p-4 shadow-sm border-t-4">
+    <div ref={drop as any} className={`min-w-[320px] p-4 border-2 border-dashed border-transparent rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50/50 shadow-lg scale-105' : 'hover:shadow-md'
+      }`}>
+      <div className={`bg-white rounded-xl p-5 shadow-lg border-t-4 ${getColumnColor()}`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800">{title}</h2>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs font-semibold bg-white/70">
               {tasks.length}
             </Badge>
             {tasks.length > 0 && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs font-medium">
                 {completedTasks}/{tasks.length}
               </Badge>
             )}
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3 min-h-[200px]">
           {tasks.map((task) => (
             <TaskCard
               key={task.id}
@@ -255,8 +275,9 @@ const Column: React.FC<{
             />
           ))}
           {tasks.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
-              <div className="text-sm">No tasks yet</div>
+            <div className="text-center py-12 text-gray-400">
+              <div className="text-sm font-medium">No tasks yet</div>
+              <div className="text-xs mt-1">Drag tasks here</div>
             </div>
           )}
         </div>
@@ -269,48 +290,48 @@ const Column: React.FC<{
 const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hasGenerated, setHasGenerated] = useState<boolean>(false);
-  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const { toast } = useToast();
 
-  const storageKey = `eventPlanner_${event._id}`;
-
-  // Load tasks from localStorage on mount
+  // Load tasks from database on mount
   useEffect(() => {
-    const savedTasks = localStorage.getItem(storageKey);
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks);
-        setTasks(parsedTasks);
-        setHasGenerated(parsedTasks.length > 0);
-      } catch (error) {
-        console.error('Error loading saved tasks:', error);
+    loadTasks();
+  }, [event._id]);
+
+  const loadTasks = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/tasks?eventId=${event._id}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.tasks.length > 0) {
+          setTasks(data.tasks);
+          setHasGenerated(true);
+        } else {
+          // No tasks exist, generate them automatically
+          await handleGenerateTasks();
+        }
+      } else {
+        // No tasks exist, generate them automatically
+        await handleGenerateTasks();
       }
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+      // Fallback to generating tasks
+      await handleGenerateTasks();
+    } finally {
+      setIsLoading(false);
     }
-  }, [storageKey]);
+  };
 
-  // Save tasks to localStorage whenever tasks change
-  useEffect(() => {
-    if (tasks.length > 0) {
-      localStorage.setItem(storageKey, JSON.stringify(tasks));
-    }
-  }, [tasks, storageKey]);
-
-  // Auto-generate tasks on initial load if no tasks exist
-  useEffect(() => {
-    if (isInitialLoad && tasks.length === 0 && !hasGenerated && !isGenerating) {
-      setIsInitialLoad(false);
-      handleGenerateTasks();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialLoad, tasks.length, hasGenerated, isGenerating]);
-
-  const handleGenerateTasks = async () => {
+  const handleGenerateTasks = async (forceRegenerate = false) => {
     setIsGenerating(true);
     try {
       const categoryName = typeof event.category === 'string' ? event.category : event.category.name;
 
-      const response = await fetch('/api/generate-tasks', {
+      const response = await fetch('/api/tasks/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -329,7 +350,9 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
             isFree: event.isFree,
             price: event.price,
             category: categoryName
-          }
+          },
+          eventId: event._id,
+          forceRegenerate
         }),
       });
 
@@ -337,29 +360,37 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
         throw new Error('Failed to generate tasks');
       }
 
-      const { tasks: generatedTasks } = await response.json();
+      const data = await response.json();
 
-      // Convert to our Task format with completion tracking
-      const newTasks: Task[] = generatedTasks.map((suggestion: any) => ({
-        id: suggestion.id,
-        content: suggestion.content,
-        column: suggestion.column,
-        subtasks: suggestion.subtasks.map((sub: any) => ({
-          ...sub,
+      if (data.success) {
+        if (data.tasksExist && !forceRegenerate) {
+          // Tasks already exist, load them
+          await loadTasks();
+          return;
+        }
+
+        // Convert to our Task format with completion tracking
+        const newTasks: Task[] = data.tasks.map((task: any) => ({
+          id: task.id,
+          content: task.content,
+          column: task.column,
+          subtasks: task.subtasks.map((sub: any) => ({
+            ...sub,
+            completed: false
+          })),
+          priority: task.priority,
+          estimatedDuration: task.estimatedDuration,
           completed: false
-        })),
-        priority: suggestion.priority,
-        estimatedDuration: suggestion.estimatedDuration,
-        completed: false
-      }));
+        }));
 
-      setTasks(newTasks);
-      setHasGenerated(true);
+        setTasks(newTasks);
+        setHasGenerated(true);
 
-      toast({
-        title: "Tasks Generated Successfully! ✨",
-        description: `Generated ${newTasks.length} tasks for ${isSubEvent ? 'sub-event' : 'event'}: "${event.title}".`,
-      });
+        toast({
+          title: "Tasks Generated Successfully! ✨",
+          description: `Generated ${newTasks.length} tasks for ${isSubEvent ? 'sub-event' : 'event'}: "${event.title}".`,
+        });
+      }
     } catch (error) {
       console.error('Error generating tasks:', error);
       toast({
@@ -372,27 +403,124 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
     }
   };
 
-  const handleDropTask = (id: string, newColumn: string) => {
+  const handleDropTask = async (id: string, newColumn: string) => {
+    // Optimistically update UI
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, column: newColumn } : t)));
+
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event._id,
+          taskUpdates: [{ taskId: id, updates: { column: newColumn } }]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update task');
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      // Revert optimistic update
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, column: t.column } : t)));
+      toast({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleToggleTask = (taskId: string) => {
+  const handleToggleTask = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newCompleted = !task.completed;
+
+    // Optimistically update UI
     setTasks((prev) => prev.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
+      task.id === taskId ? { ...task, completed: newCompleted } : task
     ));
+
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event._id,
+          taskId,
+          updates: { completed: newCompleted }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update task');
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      // Revert optimistic update
+      setTasks((prev) => prev.map((task) =>
+        task.id === taskId ? { ...task, completed: !newCompleted } : task
+      ));
+      toast({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleToggleSubtask = (taskId: string, subtaskId: string) => {
+  const handleToggleSubtask = async (taskId: string, subtaskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const subtask = task.subtasks.find(s => s.id === subtaskId);
+    if (!subtask) return;
+
+    const newCompleted = !subtask.completed;
+    const updatedSubtasks = task.subtasks.map(sub =>
+      sub.id === subtaskId ? { ...sub, completed: newCompleted } : sub
+    );
+
+    // Optimistically update UI
     setTasks((prev) => prev.map((task) =>
-      task.id === taskId
-        ? {
-          ...task,
-          subtasks: task.subtasks.map((sub) =>
-            sub.id === subtaskId ? { ...sub, completed: !sub.completed } : sub
-          )
-        }
-        : task
+      task.id === taskId ? { ...task, subtasks: updatedSubtasks } : task
     ));
+
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event._id,
+          taskId,
+          updates: { subtasks: updatedSubtasks }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update subtask');
+      }
+    } catch (error) {
+      console.error('Error updating subtask:', error);
+      // Revert optimistic update
+      setTasks((prev) => prev.map((task) =>
+        task.id === taskId
+          ? {
+            ...task,
+            subtasks: task.subtasks.map((sub) =>
+              sub.id === subtaskId ? { ...sub, completed: !newCompleted } : sub
+            )
+          }
+          : task
+      ));
+      toast({
+        title: "Error",
+        description: "Failed to update subtask. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleMoveSubtask = (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => {
@@ -426,14 +554,30 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
     });
   };
 
-  const handleClearTasks = () => {
-    setTasks([]);
-    setHasGenerated(false);
-    localStorage.removeItem(storageKey);
-    toast({
-      title: "Tasks Cleared",
-      description: "All tasks have been removed.",
-    });
+  const handleClearTasks = async () => {
+    try {
+      const response = await fetch(`/api/tasks?eventId=${event._id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setTasks([]);
+        setHasGenerated(false);
+        toast({
+          title: "Tasks Cleared",
+          description: "All tasks have been removed.",
+        });
+      } else {
+        throw new Error('Failed to clear tasks');
+      }
+    } catch (error) {
+      console.error('Error clearing tasks:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear tasks. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const columns = [
@@ -457,17 +601,35 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
   const stats = getTaskStats();
   const categoryName = typeof event.category === 'string' ? event.category : event.category.name;
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-blue-900 mb-2">Loading Event Tasks</h3>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Auto-generating tasks indicator */}
       {isGenerating && (
-        <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Card className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-center justify-center gap-3">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
               <div>
-                <h3 className="text-lg font-semibold text-blue-900">Generating AI-Powered Tasks</h3>
-                <p className="text-blue-700">Creating a personalized task list for your {categoryName.toLowerCase()} event...</p>
+                <h3 className="text-lg font-semibold text-emerald-900">Generating AI-Powered Tasks</h3>
+                <p className="text-emerald-700">Creating a personalized task list for your {categoryName.toLowerCase()} event...</p>
               </div>
             </div>
           </CardContent>
@@ -476,31 +638,35 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
       {/* Progress Stats */}
       {tasks.length > 0 && (
-        <Card className="mb-6">
+        <Card className="mb-6 shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-                <div className="text-sm text-gray-600">Total Tasks</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center p-4 rounded-lg bg-blue-50 border border-blue-100">
+                <div className="text-3xl font-bold text-blue-700 mb-1">{stats.total}</div>
+                <div className="text-sm font-medium text-blue-600">Total Tasks</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">{stats.completed}</div>
-                <div className="text-sm text-gray-600">Completed Tasks</div>
+              <div className="text-center p-4 rounded-lg bg-emerald-50 border border-emerald-100">
+                <div className="text-3xl font-bold text-emerald-700 mb-1">{stats.completed}</div>
+                <div className="text-sm font-medium text-emerald-600">Completed</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">{stats.progress}%</div>
-                <div className="text-sm text-gray-600">Progress</div>
+              <div className="text-center p-4 rounded-lg bg-purple-50 border border-purple-100">
+                <div className="text-3xl font-bold text-purple-700 mb-1">{stats.progress}%</div>
+                <div className="text-sm font-medium text-purple-600">Progress</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{stats.completedSubtasks}/{stats.totalSubtasks}</div>
-                <div className="text-sm text-gray-600">Subtasks Done</div>
+              <div className="text-center p-4 rounded-lg bg-orange-50 border border-orange-100">
+                <div className="text-2xl font-bold text-orange-700 mb-1">{stats.completedSubtasks}/{stats.totalSubtasks}</div>
+                <div className="text-sm font-medium text-orange-600">Subtasks</div>
               </div>
             </div>
 
-            <div className="mt-4">
-              <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Overall Progress</span>
+                <span className="text-sm font-bold text-gray-900">{stats.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 h-4 rounded-full transition-all duration-500 ease-out shadow-sm"
                   style={{ width: `${stats.progress}%` }}
                 />
               </div>
@@ -508,10 +674,18 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
             {hasGenerated && (
               <div className="flex gap-2 mt-4">
-                <Button variant="outline" onClick={handleClearTasks} size="sm">
+                <Button variant="outline" onClick={handleClearTasks} size="sm" className="flex items-center gap-2">
+                  <Trash2 className="h-4 w-4" />
                   Clear All Tasks
                 </Button>
-                <Button variant="outline" onClick={handleGenerateTasks} size="sm" disabled={isGenerating}>
+                <Button
+                  variant="outline"
+                  onClick={() => handleGenerateTasks(true)}
+                  size="sm"
+                  disabled={isGenerating}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
                   Regenerate Tasks
                 </Button>
               </div>
@@ -523,19 +697,21 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
       {/* Task Board */}
       {tasks.length > 0 && (
         <DndProvider backend={HTML5Backend}>
-          <div className="flex space-x-4 overflow-x-auto pb-4">
-            {columns.map((col) => (
-              <Column
-                key={col.id}
-                title={`${col.icon} ${col.title}`}
-                columnId={col.id}
-                tasks={tasks.filter((task) => task.column === col.id)}
-                onDropTask={handleDropTask}
-                onMoveSubtask={handleMoveSubtask}
-                onToggleTask={handleToggleTask}
-                onToggleSubtask={handleToggleSubtask}
-              />
-            ))}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 shadow-inner">
+            <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {columns.map((col) => (
+                <Column
+                  key={col.id}
+                  title={`${col.icon} ${col.title}`}
+                  columnId={col.id}
+                  tasks={tasks.filter((task) => task.column === col.id)}
+                  onDropTask={handleDropTask}
+                  onMoveSubtask={handleMoveSubtask}
+                  onToggleTask={handleToggleTask}
+                  onToggleSubtask={handleToggleSubtask}
+                />
+              ))}
+            </div>
           </div>
         </DndProvider>
       )}
@@ -546,7 +722,8 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
           <AlertCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks generated</h3>
           <p className="text-gray-600 mb-4">Something went wrong with task generation. Please try again.</p>
-          <Button onClick={handleGenerateTasks} disabled={isGenerating}>
+          <Button onClick={() => handleGenerateTasks(true)} disabled={isGenerating} className="flex items-center gap-2">
+            <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
             Try Again
           </Button>
         </div>

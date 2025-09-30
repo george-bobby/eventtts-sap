@@ -14,7 +14,7 @@ import { useState, useEffect } from "react";
 import { useUploadThing } from "@/lib/uploadthing";
 import { IEvent } from "@/lib/models/event.model";
 import { useToast } from "@/hooks/use-toast";
-import { generatePdfObject } from "@/lib/actions/report.action";
+
 import { getEventStatistics } from "@/lib/actions/order.action";
 import jsPDF from "jspdf";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,18 +102,32 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
         uploadedImageUrl = uploadedImages[0].url;
       }
 
-      const result = await generatePdfObject({
-        report: { ...values, photos: uploadedImageUrl || "" },
-        eventId,
+      // Generate JSON report first
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId,
+          report: { ...values, photos: uploadedImageUrl || "" },
+          format: 'json'
+        }),
       });
 
-      if (!result.success || !result.pdfObject) {
-        throw new Error(result.error || "Failed to get PDF data from AI.");
+      if (!response.ok) {
+        throw new Error('Failed to generate report');
+      }
+
+      const result = await response.json();
+
+      if (!result.success || !result.reportData) {
+        throw new Error(result.error || "Failed to get report data from AI.");
       }
 
       // --- PDF Generation from JSON Object ---
       const doc = new jsPDF();
-      const pdfData = result.pdfObject as PdfJsonObject;
+      const pdfData = result.reportData as PdfJsonObject;
       let y = 20;
 
       doc.setFontSize(22);
@@ -151,6 +165,92 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
       setIsGenerating(false);
     }
   }
+
+  // Function to download PDF
+  const downloadPDF = async () => {
+    try {
+      const values = form.getValues();
+      let uploadedImageUrl = values.photos;
+      if (files.length > 0) {
+        const uploadedImages = await startUpload(files);
+        if (!uploadedImages) throw new Error("Image upload failed.");
+        uploadedImageUrl = uploadedImages[0].url;
+      }
+
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId,
+          report: { ...values, photos: uploadedImageUrl || "" },
+          format: 'pdf'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${event.title}-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({ title: "PDF Downloaded!", description: "Your report has been downloaded as PDF." });
+    } catch (error) {
+      toast({ title: "Download Failed", description: (error as Error).message, variant: "destructive" });
+    }
+  };
+
+  // Function to download Word document
+  const downloadWord = async () => {
+    try {
+      const values = form.getValues();
+      let uploadedImageUrl = values.photos;
+      if (files.length > 0) {
+        const uploadedImages = await startUpload(files);
+        if (!uploadedImages) throw new Error("Image upload failed.");
+        uploadedImageUrl = uploadedImages[0].url;
+      }
+
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId,
+          report: { ...values, photos: uploadedImageUrl || "" },
+          format: 'word'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Word document');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${event.title}-report.docx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({ title: "Word Document Downloaded!", description: "Your report has been downloaded as Word document." });
+    } catch (error) {
+      toast({ title: "Download Failed", description: (error as Error).message, variant: "destructive" });
+    }
+  };
 
   const downloadPdf = () => {
     if (!pdfUrl) return;
@@ -596,7 +696,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 />
 
                 {/* Submit Button */}
-                <div className="pt-6">
+                <div className="pt-6 space-y-4">
                   <Button
                     type="submit"
                     size="lg"
@@ -614,6 +714,30 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                       </>
                     )}
                   </Button>
+
+                  {/* Download Buttons */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      onClick={downloadPDF}
+                      disabled={isGenerating}
+                      className="h-12 font-semibold border-2 hover:bg-red-50 hover:border-red-300"
+                    >
+                      📄 Download PDF
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      onClick={downloadWord}
+                      disabled={isGenerating}
+                      className="h-12 font-semibold border-2 hover:bg-blue-50 hover:border-blue-300"
+                    >
+                      📝 Download Word
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>

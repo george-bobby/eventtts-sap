@@ -108,7 +108,7 @@ const Footer = () => {
                 </div>
                 <div className="flex items-center gap-3 text-gray-300">
                   <Phone className="w-4 h-4 text-red-400" />
-                  <span className="text-sm">+91 1234567890</span>
+                  <span className="text-sm">+91 9746095420</span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-300">
                   <MapPin className="w-4 h-4 text-red-400" />
@@ -166,7 +166,7 @@ const Footer = () => {
                   </p>
                 </Link>
                 <span className="text-gray-400">•</span>
-                <p className="text-gray-400">Made with ❤️ and ☕</p>
+                <p className="text-gray-400">Made with ❤️ in Bengaluru</p>
               </div>
 
               <button
