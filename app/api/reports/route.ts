@@ -12,16 +12,27 @@ import { getUserByClerkId } from '@/lib/actions/user.action';
 import jsPDF from 'jspdf';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 
-// Zod schema for report generation
-const reportSchema = z.object({
-	title: z.string(),
-	sections: z.array(
-		z.object({
-			heading: z.string(),
-			content: z.array(z.string()),
-		})
-	),
-});
+// Simplified Zod schema for report generation to avoid deep type instantiation
+const reportSchema = z
+	.object({
+		title: z.string(),
+		sections: z.array(
+			z.object({
+				heading: z.string(),
+				content: z.array(z.string()),
+			})
+		),
+	})
+	.strict();
+
+// Type definition for report data
+type ReportData = {
+	title: string;
+	sections: Array<{
+		heading: string;
+		content: string[];
+	}>;
+};
 
 // Zod schema for request body
 const requestSchema = z.object({
@@ -166,11 +177,15 @@ export async function POST(request: NextRequest) {
       Make the report professional, data-driven, and actionable. Include specific numbers and percentages where relevant.
     `;
 
-		const { object: reportData } = (await generateObject({
+		// Generate report using AI with explicit typing to avoid type inference issues
+		const aiResult = await (generateObject as any)({
 			model: google('gemini-2.0-flash-exp'),
 			schema: reportSchema,
 			prompt,
-		})) as { object: z.infer<typeof reportSchema> };
+		});
+
+		// Type assertion to avoid deep type inference issues
+		const reportData = aiResult.object as ReportData;
 
 		// Save report to database
 		const savedReport = await Report.create({
@@ -183,7 +198,7 @@ export async function POST(request: NextRequest) {
 		// Handle different output formats
 		if (format === 'pdf') {
 			const pdfBuffer = await generatePDF(reportData, event, report.photos);
-			return new NextResponse(pdfBuffer as Buffer, {
+			return new NextResponse(new Uint8Array(pdfBuffer), {
 				headers: {
 					'Content-Type': 'application/pdf',
 					'Content-Disposition': `attachment; filename="${event.title}-report.pdf"`,
@@ -193,7 +208,7 @@ export async function POST(request: NextRequest) {
 
 		if (format === 'word') {
 			const wordBuffer = await generateWord(reportData, event, report.photos);
-			return new NextResponse(wordBuffer as Buffer, {
+			return new NextResponse(new Uint8Array(wordBuffer), {
 				headers: {
 					'Content-Type':
 						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -222,7 +237,7 @@ export async function POST(request: NextRequest) {
 
 // Helper function to generate PDF
 async function generatePDF(
-	reportData: any,
+	reportData: ReportData,
 	event: any,
 	photoUrl?: string
 ): Promise<Buffer> {
@@ -291,7 +306,7 @@ async function generatePDF(
 
 // Helper function to generate Word document
 async function generateWord(
-	reportData: any,
+	reportData: ReportData,
 	event: any,
 	photoUrl?: string
 ): Promise<Buffer> {
