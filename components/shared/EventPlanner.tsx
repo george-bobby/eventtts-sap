@@ -459,31 +459,6 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
   return (
     <div className="space-y-6">
-      {/* Event Details Card */}
-      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-900">
-            <Calendar className="h-5 w-5" />
-            {event.title}
-          </CardTitle>
-          <CardDescription className="flex items-center gap-4 text-sm">
-            <Badge variant="secondary">{categoryName}</Badge>
-            {event.location && (
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span>{event.isOnline ? 'Online' : event.location}</span>
-              </div>
-            )}
-            {event.totalCapacity && (
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>{event.totalCapacity} attendees</span>
-              </div>
-            )}
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
       {/* Auto-generating tasks indicator */}
       {isGenerating && (
         <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">

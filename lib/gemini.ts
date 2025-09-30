@@ -101,7 +101,7 @@ Generate ${
 
 		// Use Google Generative AI directly to avoid type instantiation issues
 		const model = genAI.getGenerativeModel({
-			model: 'gemini-1.5-pro',
+			model: 'gemini-2.5-flash',
 			generationConfig: {
 				responseMimeType: 'application/json',
 			},

@@ -171,9 +171,6 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
             <CalendarDays className="h-6 w-6 text-primary" />
             Event Overview
           </CardTitle>
-          <CardDescription>
-            Automatically populated from your event data
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -499,7 +496,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 {/* Optional Fields Section */}
                 <div className="space-y-6 p-4 bg-gray-50 rounded-lg">
                   <h3 className="text-lg font-semibold text-gray-800">Additional Details (Optional)</h3>
-                  
+
                   {/* Partners */}
                   <FormField
                     control={form.control}
@@ -613,7 +610,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                       </>
                     ) : (
                       <>
-                        🚀 Generate AI-Powered Report
+                        Generate Report
                       </>
                     )}
                   </Button>
