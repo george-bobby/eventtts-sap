@@ -19,7 +19,7 @@ const EventCards = ({ events, currentUserId, emptyTitle, emptyStateSubtext, page
       <NoResults
         title={emptyTitle}
         desc={emptyStateSubtext}
-        link={"/"}
+        link={"/explore"}
         linkTitle={"Explore All Events"}
       />
     );

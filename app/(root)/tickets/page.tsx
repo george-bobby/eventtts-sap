@@ -50,7 +50,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
               </CardHeader>
               <CardContent className="text-center space-y-4">
                 <p className="text-green-700">
-                  {sessionId 
+                  {sessionId
                     ? 'Payment processed successfully. You will receive a confirmation email shortly with your ticket details and entry codes.'
                     : 'Your free event registration is complete. Check your email for ticket details and entry codes.'
                   }
