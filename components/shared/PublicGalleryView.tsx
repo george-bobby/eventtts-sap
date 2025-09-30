@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Download, 
-  Search, 
-  Calendar, 
-  MapPin, 
-  Eye, 
+import {
+  Download,
+  Search,
+  Calendar,
+  MapPin,
+  Eye,
   Heart,
   Share2,
   Filter,
@@ -63,7 +63,7 @@ export default function PublicGalleryView({
 
   const handleDownload = async (photo: any) => {
     if (!gallery.allowDownload) return;
-    
+
     // Track download
     await fetch(`/api/gallery/${gallery._id}/photos/${photo._id}`, {
       method: 'POST',
@@ -165,7 +165,7 @@ export default function PublicGalleryView({
               </Select>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">
               {pagination.total} photos
@@ -199,7 +199,7 @@ export default function PublicGalleryView({
             <div className="text-6xl mb-4">📷</div>
             <h3 className="text-lg font-semibold mb-2">No Photos Found</h3>
             <p className="text-gray-600 text-center">
-              {filters.search || filters.category 
+              {filters.search || filters.category
                 ? 'Try adjusting your search filters.'
                 : 'Photos will appear here once they are uploaded.'}
             </p>
@@ -207,16 +207,15 @@ export default function PublicGalleryView({
         </Card>
       ) : (
         <div className={
-          viewMode === 'grid' 
+          viewMode === 'grid'
             ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'
             : 'space-y-4'
         }>
           {photos.map((photo) => (
-            <Card 
-              key={photo._id} 
-              className={`cursor-pointer hover:shadow-lg transition-shadow ${
-                viewMode === 'list' ? 'flex flex-row' : ''
-              }`}
+            <Card
+              key={photo._id}
+              className={`cursor-pointer hover:shadow-lg transition-shadow ${viewMode === 'list' ? 'flex flex-row' : ''
+                }`}
               onClick={() => handlePhotoClick(photo)}
             >
               <div className={viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}>
@@ -229,7 +228,7 @@ export default function PublicGalleryView({
                   />
                 </div>
               </div>
-              
+
               {viewMode === 'list' && (
                 <CardContent className="flex-1 p-4">
                   <h4 className="font-medium mb-2">
@@ -266,7 +265,7 @@ export default function PublicGalleryView({
                   </div>
                 </CardContent>
               )}
-              
+
               {viewMode === 'grid' && photo.metadata?.caption && (
                 <CardContent className="p-3">
                   <p className="text-sm text-gray-600 line-clamp-2">
@@ -303,7 +302,7 @@ export default function PublicGalleryView({
 
       {/* Photo Modal */}
       {selectedPhoto && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedPhoto(null)}
         >
