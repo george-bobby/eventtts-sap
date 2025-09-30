@@ -11,8 +11,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Send, Edit, Trash2, Eye, Calendar, Users, Mail, MessageSquare, RefreshCw, BarChart3 } from 'lucide-react';
+import { Plus, Send, Edit, Trash2, Eye, Calendar, Users, Mail, MessageSquare, RefreshCw, BarChart3, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface EventUpdate {
   _id: string;
@@ -481,7 +485,8 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
     inApp: true,
     sms: false,
     push: false,
-    scheduledFor: '',
+    scheduledFor: undefined as Date | undefined,
+    scheduledTime: '',
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -511,7 +516,9 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
             inApp: formData.inApp,
             push: formData.push,
           },
-          scheduledFor: formData.scheduledFor || undefined,
+          scheduledFor: formData.scheduledFor && formData.scheduledTime
+            ? new Date(`${format(formData.scheduledFor, 'yyyy-MM-dd')}T${formData.scheduledTime}`).toISOString()
+            : undefined,
         }),
       });
 
@@ -635,13 +642,48 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="scheduledFor">Schedule For (Optional)</Label>
-        <Input
-          id="scheduledFor"
-          type="datetime-local"
-          value={formData.scheduledFor}
-          onChange={(e) => setFormData({ ...formData, scheduledFor: e.target.value })}
-        />
+        <Label>Schedule For (Optional)</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="scheduledDate">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full pl-3 text-left font-normal",
+                    !formData.scheduledFor && "text-muted-foreground"
+                  )}
+                >
+                  {formData.scheduledFor ? (
+                    format(formData.scheduledFor, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={formData.scheduledFor}
+                  onSelect={(date) => setFormData({ ...formData, scheduledFor: date })}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="scheduledTime">Time</Label>
+            <Input
+              id="scheduledTime"
+              type="time"
+              value={formData.scheduledTime}
+              onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-end gap-2">

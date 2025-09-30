@@ -183,7 +183,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **Home Page** (`/`) - Event discovery and recommendations
 - **Explore Events** (`/explore`) - Browse and filter events
 - **Event Details** (`/event/[id]`) - Detailed event information and registration
-- **My Tickets** (`/tickets`) - View purchased tickets and QR codes
+- **My Tickets** (`/event/[id]/ticket`) - View purchased tickets and QR codes
 - **Dashboard** (`/dashboard`) - User dashboard and preferences
 - **Event Gallery** (`/gallery/[id]`) - View event photos
 - **Ticket Verification** (`/verify-ticket/[id]`) - QR code verification

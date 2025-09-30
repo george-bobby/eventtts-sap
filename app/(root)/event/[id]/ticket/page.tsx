@@ -16,10 +16,12 @@ import { TicketQRCode } from '@/components/ui/qr-code';
 
 interface TicketPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function TicketPage({ params }: TicketPageProps) {
+export default async function TicketPage({ params, searchParams }: TicketPageProps) {
   const { id } = await params;
+  const searchParamsData = await searchParams;
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
@@ -100,6 +102,35 @@ export default async function TicketPage({ params }: TicketPageProps) {
           </p>
         </div>
       </section>
+
+      {/* Success Message */}
+      {(searchParamsData.success === 'true' || searchParamsData.session_id) && (
+        <div className="max-w-4xl mx-auto px-6 pt-8">
+          <Card className="border-green-200 bg-green-50 mb-8">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl text-green-800">
+                Booking Successful!
+              </CardTitle>
+              <CardDescription className="text-green-700 text-lg">
+                Your ticket{tickets.length > 1 ? 's have' : ' has'} been confirmed and {tickets.length > 1 ? 'are' : 'is'} ready to use.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-green-700">
+                {searchParamsData.session_id
+                  ? 'Payment processed successfully. You will receive a confirmation email shortly with your ticket details and entry codes.'
+                  : 'Your free event registration is complete. Check your email for ticket details and entry codes.'
+                }
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">

@@ -1,6 +1,5 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
 import { ObjectId } from 'mongodb';
 import Order from '../models/order.model';
@@ -61,7 +60,7 @@ export async function checkoutOrder(order: OrderProps) {
 
 			// Return a success URL that will be handled by the frontend
 			return {
-				url: `${process.env.NEXT_PUBLIC_SERVER_URL}/tickets?success=true`,
+				url: `${process.env.NEXT_PUBLIC_SERVER_URL}/event/${eventId}/ticket?success=true`,
 			};
 		} catch (error) {
 			console.error('Error creating free order:', error);
@@ -110,15 +109,69 @@ export async function checkoutOrder(order: OrderProps) {
 			metadata.subEventId = order.event.subEventId;
 		}
 
-		// Create Stripe checkout session
-		const session = await stripe.checkout.sessions.create({
+		// Create Stripe checkout session with Indian regulation compliance
+		const sessionParams: Stripe.Checkout.SessionCreateParams = {
 			payment_method_types: ['card'],
 			line_items: lineItems,
 			mode: 'payment',
-			success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/tickets?session_id={CHECKOUT_SESSION_ID}`,
+			success_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/event/${eventId}/ticket?session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/event/${eventId}?canceled=true`,
 			metadata,
-		});
+			// Required for Indian regulations - collect customer name and address
+			billing_address_collection: 'required',
+			shipping_address_collection: {
+				allowed_countries: [
+					'US',
+					'CA',
+					'GB',
+					'AU',
+					'DE',
+					'FR',
+					'IT',
+					'ES',
+					'NL',
+					'BE',
+					'AT',
+					'CH',
+					'SE',
+					'NO',
+					'DK',
+					'FI',
+					'IE',
+					'PT',
+					'GR',
+					'PL',
+					'CZ',
+					'HU',
+					'RO',
+					'BG',
+					'HR',
+					'JP',
+					'SG',
+					'HK',
+					'MY',
+					'TH',
+					'ID',
+					'PH',
+					'KR',
+					'NZ',
+					'MX',
+					'BR',
+					'ZA',
+					'AE',
+					'SA',
+					'IL',
+					'TR',
+					'EG',
+				],
+			},
+			customer_creation: 'always',
+			phone_number_collection: {
+				enabled: true,
+			},
+		};
+
+		const session = await stripe.checkout.sessions.create(sessionParams);
 
 		return { url: session.url };
 	} catch (error) {
@@ -301,7 +354,7 @@ export async function createOrder(order: createOrderParams) {
 		}
 
 		await event.save();
-		revalidatePath('/tickets');
+		revalidatePath('/dashboard');
 
 		return JSON.parse(JSON.stringify(newOrder));
 	} catch (error) {

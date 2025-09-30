@@ -180,7 +180,21 @@ export async function getUserEventTickets(userId: string, eventId: string) {
 	try {
 		await connectToDatabase();
 
-		const tickets = await Ticket.find({ user: userId, event: eventId })
+		// Import mongoose for ObjectId handling
+		const mongoose = require('mongoose');
+
+		// Ensure userId and eventId are proper ObjectIds for the query
+		const userObjectId = mongoose.Types.ObjectId.isValid(userId)
+			? new mongoose.Types.ObjectId(userId)
+			: userId;
+		const eventObjectId = mongoose.Types.ObjectId.isValid(eventId)
+			? new mongoose.Types.ObjectId(eventId)
+			: eventId;
+
+		const tickets = await Ticket.find({
+			user: userObjectId,
+			event: eventObjectId,
+		})
 			.populate(
 				'event',
 				'title startDate endDate location photo startTime endTime'
@@ -356,7 +370,13 @@ export async function cancelTickets(params: CancelTicketParams) {
 		}
 
 		// Verify the user owns this order
-		if (order.user.toString() !== params.userId) {
+		// Handle both ObjectId and string cases
+		const orderUserId =
+			typeof order.user === 'object' && order.user._id
+				? order.user._id.toString()
+				: order.user.toString();
+
+		if (orderUserId !== params.userId) {
 			throw new Error('Unauthorized: You can only cancel your own tickets');
 		}
 

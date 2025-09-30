@@ -27,7 +27,6 @@ const Footer = () => {
     platform: [
       { name: "Explore", href: "/explore" },
       { name: "Create", href: "/create" },
-      { name: "My Tickets", href: "/tickets" },
       { name: "Dashboard", href: "/dashboard" }
     ],
     campus: [
