@@ -528,7 +528,8 @@ export async function getEventById(
 			}));
 		}
 
-		return event as EventWithSubEvents;
+		// Ensure proper serialization for client components
+		return JSON.parse(JSON.stringify(event)) as EventWithSubEvents;
 	} catch (error) {
 		console.error(error);
 		throw new Error('Failed to fetch event by ID');

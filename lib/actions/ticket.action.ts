@@ -33,6 +33,11 @@ export interface VerifyTicketParams {
 	verifiedBy: string;
 }
 
+export interface CancelTicketParams {
+	orderId: string;
+	userId: string;
+}
+
 /**
  * Generate a unique ticket ID
  */
@@ -333,6 +338,83 @@ export async function generateTicketsForEvent(
 		return results;
 	} catch (error) {
 		console.error('Error generating tickets for event:', error);
+		throw error;
+	}
+}
+
+/**
+ * Cancel tickets for a specific order
+ */
+export async function cancelTickets(params: CancelTicketParams) {
+	try {
+		await connectToDatabase();
+
+		// Find the order and verify ownership
+		const order = await Order.findById(params.orderId).populate('event');
+		if (!order) {
+			throw new Error('Order not found');
+		}
+
+		// Verify the user owns this order
+		if (order.user.toString() !== params.userId) {
+			throw new Error('Unauthorized: You can only cancel your own tickets');
+		}
+
+		// Check if the event has already started (optional business rule)
+		const event = order.event;
+		const now = new Date();
+		const eventStart = new Date(event.startDate);
+
+		// Allow cancellation up to 1 hour before event starts
+		const cancellationDeadline = new Date(
+			eventStart.getTime() - 60 * 60 * 1000
+		);
+		if (now > cancellationDeadline) {
+			throw new Error(
+				'Cannot cancel tickets less than 1 hour before the event starts'
+			);
+		}
+
+		// Find all tickets for this order
+		const tickets = await Ticket.find({ order: params.orderId });
+		if (tickets.length === 0) {
+			throw new Error('No tickets found for this order');
+		}
+
+		// Update all tickets to cancelled status
+		await Ticket.updateMany(
+			{ order: params.orderId },
+			{
+				status: 'cancelled',
+				updatedAt: new Date(),
+			}
+		);
+
+		// Update event capacity (add back the cancelled tickets)
+		// Only update if the event has limited capacity (not -1)
+		if (event.ticketsLeft !== -1) {
+			event.ticketsLeft = (event.ticketsLeft || 0) + order.totalTickets;
+			event.soldOut = false; // Event is no longer sold out
+			await event.save();
+		}
+
+		// Optionally, you could also mark the order as cancelled
+		// await Order.findByIdAndUpdate(params.orderId, { status: 'cancelled' });
+
+		revalidatePath('/dashboard');
+		revalidatePath(`/event/${event._id}`);
+		revalidatePath(`/event/${event._id}/attendees`);
+
+		return {
+			success: true,
+			message: `Successfully cancelled ${tickets.length} ticket${
+				tickets.length > 1 ? 's' : ''
+			}`,
+			cancelledTickets: tickets.length,
+			refundedCapacity: order.totalTickets,
+		};
+	} catch (error) {
+		console.error('Error cancelling tickets:', error);
 		throw error;
 	}
 }

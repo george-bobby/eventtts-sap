@@ -40,7 +40,7 @@ export async function getEventTasks(eventId: string, userId: string) {
 				priority: task.priority,
 				estimatedDuration: task.estimatedDuration,
 				completed: task.completed,
-				subtasks: task.subtasks.map((subtask) => ({
+				subtasks: task.subtasks.map((subtask: any) => ({
 					id: subtask.id,
 					content: subtask.content,
 					completed: subtask.completed,

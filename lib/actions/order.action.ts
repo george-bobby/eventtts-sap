@@ -73,6 +73,12 @@ export async function checkoutOrder(order: OrderProps) {
 	const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 	try {
+		// Ensure totalTickets is a valid integer >= 1
+		const validTicketQuantity = Math.max(
+			1,
+			Math.floor(Number(order.totalTickets) || 1)
+		);
+
 		// Prepare line items for Stripe
 		const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
 			{
@@ -84,13 +90,13 @@ export async function checkoutOrder(order: OrderProps) {
 						description: `Tickets for ${eventTitle}`,
 					},
 				},
-				quantity: order.totalTickets,
+				quantity: validTicketQuantity,
 			},
 		];
 
 		// Prepare metadata
 		const metadata: Record<string, string> = {
-			totalTickets: order.totalTickets.toString(),
+			totalTickets: validTicketQuantity.toString(),
 			userId: order.user.toString(), // order.user is already the user ID string
 			eventId: eventId.toString(),
 		};

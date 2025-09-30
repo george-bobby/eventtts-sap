@@ -144,10 +144,12 @@ export async function POST(request: NextRequest) {
 				feedbackAnalytics
 					? `
       **FEEDBACK ANALYTICS:**
-      - Average Rating: ${feedbackAnalytics.averageRating}/5
+      - Average Overall Satisfaction: ${feedbackAnalytics.averageRatings.overallSatisfaction}/5
+      - Average Content Quality: ${feedbackAnalytics.averageRatings.contentQuality}/5
+      - Average Organization Rating: ${feedbackAnalytics.averageRatings.organizationRating}/5
       - Total Responses: ${feedbackAnalytics.totalResponses}
       - Response Rate: ${feedbackAnalytics.responseRate}%
-      - Satisfaction Level: ${feedbackAnalytics.satisfactionLevel}
+      - NPS Score: ${feedbackAnalytics.npsScore}
       `
 					: '**FEEDBACK ANALYTICS:** No feedback data available for this event.'
 			}
@@ -181,7 +183,7 @@ export async function POST(request: NextRequest) {
 		// Handle different output formats
 		if (format === 'pdf') {
 			const pdfBuffer = await generatePDF(reportData, event, report.photos);
-			return new NextResponse(pdfBuffer, {
+			return new NextResponse(pdfBuffer as Buffer, {
 				headers: {
 					'Content-Type': 'application/pdf',
 					'Content-Disposition': `attachment; filename="${event.title}-report.pdf"`,
@@ -191,7 +193,7 @@ export async function POST(request: NextRequest) {
 
 		if (format === 'word') {
 			const wordBuffer = await generateWord(reportData, event, report.photos);
-			return new NextResponse(wordBuffer, {
+			return new NextResponse(wordBuffer as Buffer, {
 				headers: {
 					'Content-Type':
 						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

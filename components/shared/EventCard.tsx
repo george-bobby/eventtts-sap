@@ -5,12 +5,22 @@ import { dateConverter, timeFormatConverter } from "@/lib/utils";
 import Link from "next/link";
 import LikeCartButton from "./LikeCartButton";
 import DeleteEventButton from "./DeleteEventButton";
+import CancelTicketButton from "./CancelTicketButton";
 import { Button } from "@/components/ui/button";
 import { EventWithSubEvents } from "@/lib/actions/event.action";
 import { Settings, AlertTriangle, Ticket, MessageSquare } from "lucide-react";
 
 interface Props {
-  event: EventWithSubEvents;
+  event: EventWithSubEvents & {
+    orderId?: string;
+    orderInfo?: {
+      _id: string;
+      totalTickets: number;
+      totalAmount: number;
+      createdAt: Date;
+      stripeId: string;
+    };
+  };
   currentUserId: string | null;
   page?: string;
   user?: any; // The pre-fetched user data
@@ -99,12 +109,21 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
-                <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  Report Issue
-                </Link>
-              </Button>
+              // Show Cancel Ticket button if we have order information
+              event.orderId ? (
+                <CancelTicketButton
+                  orderId={event.orderId}
+                  eventTitle={event.title}
+                  totalTickets={event.orderInfo?.totalTickets || 1}
+                />
+              ) : (
+                <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
+                  <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Report Issue
+                  </Link>
+                </Button>
+              )
             );
           })()
           }

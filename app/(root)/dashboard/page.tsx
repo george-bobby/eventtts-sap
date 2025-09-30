@@ -38,7 +38,17 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
       ordersPromise,
     ]);
 
-    const myTickets = orders?.data.map((order: IOrder) => order.event) || [];
+    const myTickets = orders?.data.map((order: IOrder) => ({
+      ...order.event,
+      orderId: order._id, // Add order ID for cancellation
+      orderInfo: {
+        _id: order._id,
+        totalTickets: order.totalTickets,
+        totalAmount: order.totalAmount,
+        createdAt: order.createdAt,
+        stripeId: order.stripeId
+      }
+    })) || [];
     const myOrganizedEvents = organizedEvents?.data || [];
 
     return (
