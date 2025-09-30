@@ -98,7 +98,7 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       title: 'Event Updates',
       description: 'Send notifications and updates to attendees',
       icon: Bell,
-      href: `/event/${id}/updates`,
+      href: `/event/${id}/notifications`,
       color: 'bg-emerald-500 hover:bg-emerald-600',
       iconColor: 'text-emerald-600'
     },
