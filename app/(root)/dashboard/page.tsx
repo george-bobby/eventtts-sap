@@ -57,7 +57,7 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-white">Events Organized</h3>
                 <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
-                  <Link href="/create-event">Create New Event</Link>
+                  <Link href="/create">Create New Event</Link>
                 </Button>
               </div>
             </div>
@@ -79,7 +79,7 @@ const ProfilePage = async ({ searchParams }: ProfilePageProps) => {
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-white">My Tickets</h3>
                 <Button asChild size="lg" className="bg-white text-red-600 hover:bg-gray-100 font-semibold hidden sm:flex">
-                  <Link href="/explore-events">Explore More Events</Link>
+                  <Link href="/explore">Explore More Events</Link>
                 </Button>
               </div>
             </div>

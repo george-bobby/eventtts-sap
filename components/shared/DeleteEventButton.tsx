@@ -37,8 +37,8 @@ const DeleteEventButton = ({ eventId }: DeleteEventButtonProps) => {
         });
 
         setIsOpen(false);
-        // Redirect to profile page after successful deletion
-        router.push("/profile");
+        // Redirect to dashboard page after successful deletion
+        router.push("/dashboard");
       } else {
         throw new Error("Delete operation failed");
       }

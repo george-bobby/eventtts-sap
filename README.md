@@ -181,16 +181,16 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### **Student/Attendee Features**
 
 - **Home Page** (`/`) - Event discovery and recommendations
-- **Explore Events** (`/explore-events`) - Browse and filter events
+- **Explore Events** (`/explore`) - Browse and filter events
 - **Event Details** (`/event/[id]`) - Detailed event information and registration
 - **My Tickets** (`/tickets`) - View purchased tickets and QR codes
-- **Profile** (`/profile`) - User profile and preferences
+- **Dashboard** (`/dashboard`) - User dashboard and preferences
 - **Event Gallery** (`/gallery/[id]`) - View event photos
 - **Ticket Verification** (`/verify-ticket/[id]`) - QR code verification
 
 ### **Organizer Features**
 
-- **Create Event** (`/create-event`) - Comprehensive event creation
+- **Create Event** (`/create`) - Comprehensive event creation
 - **Event Management** (`/event/[id]/manage`) - Complete event dashboard
 - **AI Planning** (`/event/[id]/plan`) - AI-generated task management
 - **Analytics** (`/event/[id]/analytics`) - Event performance metrics

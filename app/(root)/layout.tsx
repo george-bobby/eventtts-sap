@@ -3,7 +3,7 @@ import Header from "@/components/shared/Header";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "Eventtts - College Event Manager",
+	title: "Eventtts - Event Management Made Easy",
 	description: "Eventtts is a platform for event management.",
 	icons: {
 		icon: "/images/favicon.ico",

@@ -1,9 +1,9 @@
 import { HomeIcon, PersonIcon } from "@radix-ui/react-icons";
-import { CgProfile } from "react-icons/cg";
 import { FaRegHeart } from "react-icons/fa";
 import { TfiTicket } from "react-icons/tfi";
 import { IoLocationOutline } from "react-icons/io5";
-import { MdExplore } from "react-icons/md";
+import { CiCompass1 } from "react-icons/ci";
+
 
 interface SidebarLink {
   image: JSX.Element;
@@ -18,9 +18,9 @@ export const sidebarLinks: SidebarLink[] = [
     path: "/",
   },
   {
-    image: <MdExplore />,
+    image: <CiCompass1 />,
     label: "Explore Events",
-    path: "/explore-events",
+    path: "/explore",
   },
   {
     image: <IoLocationOutline />,
@@ -28,23 +28,18 @@ export const sidebarLinks: SidebarLink[] = [
     path: "/track",
   },
   {
-    image: <PersonIcon />,
+    image: <TfiTicket />,
     label: "Create Event",
-    path: "/create-event",
+    path: "/create",
   },
   {
     image: <FaRegHeart />,
-    label: "Likes",
-    path: "/likes",
+    label: "Wishlist",
+    path: "/wishlist",
   },
   {
-    image: <TfiTicket />,
-    label: "Tickets",
-    path: "/tickets",
-  },
-  {
-    image: <CgProfile />,
-    label: "Profile",
-    path: "/profile",
+    image: <PersonIcon />,
+    label: "Dashboard",
+    path: "/dashboard",
   },
 ];

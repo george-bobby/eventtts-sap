@@ -665,8 +665,8 @@ export async function deleteEventById(eventId: string) {
 
 		// Revalidate paths
 		revalidatePath('/');
-		revalidatePath('/profile');
-		revalidatePath('/explore-events');
+		revalidatePath('/dashboard');
+		revalidatePath('/explore');
 
 		console.log(`Event ${eventId} and all related data successfully deleted.`);
 		return { success: true };

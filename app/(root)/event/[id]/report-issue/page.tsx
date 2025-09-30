@@ -12,7 +12,7 @@ interface IssueReportPageProps {
 export async function generateMetadata({ params }: IssueReportPageProps): Promise<Metadata> {
     const resolvedParams = await params;
     const event = await getEventById(resolvedParams.id);
-    
+
     return {
         title: `Report Issue - ${event?.title || 'Event'} | SAP Hackathon`,
         description: `Report a problem or issue with ${event?.title || 'this event'}. Get help with tickets, technical issues, or event information.`,
@@ -35,7 +35,7 @@ export default async function IssueReportPage({ params }: IssueReportPageProps) 
     ]);
 
     if (!event) {
-        redirect('/explore-events');
+        redirect('/explore');
     }
 
     if (!user) {
@@ -81,10 +81,10 @@ export default async function IssueReportPage({ params }: IssueReportPageProps) 
                                 <span>For urgent issues, you can also contact the organizer directly using the information provided in the event details</span>
                             </div>
                         </div>
-                        
+
                         <div className="mt-4 p-3 bg-blue-100 rounded border border-blue-200">
                             <p className="text-sm text-blue-700">
-                                <strong>Need immediate help?</strong> For urgent issues that require immediate attention, 
+                                <strong>Need immediate help?</strong> For urgent issues that require immediate attention,
                                 contact the event organizer directly at their provided contact information.
                             </p>
                         </div>

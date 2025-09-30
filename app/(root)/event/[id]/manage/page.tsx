@@ -143,9 +143,9 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-6">
             <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">
-              <Link href="/profile">
+              <Link href="/dashboard">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Profile
+                Back to Dashboard
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">

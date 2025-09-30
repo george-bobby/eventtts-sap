@@ -109,7 +109,7 @@ export async function createIssue(
 			reporterName: `${reporter.firstName} ${reporter.lastName}`,
 		});
 
-		revalidatePath('/explore-events');
+		revalidatePath('/explore');
 
 		return {
 			success: true,

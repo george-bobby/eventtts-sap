@@ -1,41 +1,36 @@
 'use client';
-import { SearchParamProps } from '@/types';
-import { getEvents } from '@/lib/actions/event.action';
-import { auth } from '@clerk/nextjs/server';
-import { getUserByClerkId } from '@/lib/actions/user.action';
+import { EventWithSubEvents } from '@/lib/actions/event.action';
 import EventCards from '@/components/shared/EventCards';
 import SearchBar from '@/components/shared/SearchBar';
 import Categories from '@/components/shared/Categories';
 import Pagination from '@/components/shared/Pagination';
 import EventFilters, { EventFilters as EventFiltersType } from '@/components/shared/EventFilters';
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Grid, List, Calendar, MapPin, Users, Clock, SlidersHorizontal, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { Calendar, MapPin, Users, Clock, SlidersHorizontal, Sparkles, Grid, List } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { formUrlQuery, removeKeysFromQuery } from '@/lib/utils';
-import { EventWithSubEvents } from '@/lib/actions/event.action';
-import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-    title: 'Explore Events | SAP Hackathon',
-    description: 'Discover amazing events, workshops, seminars, and activities happening on campus. Find your perfect event and connect with like-minded people.',
-    keywords: ['events', 'university', 'student activities', 'workshops', 'seminars', 'campus events'],
-};
+interface ExploreEventsClientProps {
+    initialEventsData: { events: EventWithSubEvents[]; totalPages: number };
+    userData: any;
+    userId: string | null;
+    initialPage: number;
+}
 
-export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
-    const [eventsData, setEventsData] = useState<{ events: EventWithSubEvents[]; totalPages: number } | null>(null);
-    const [userData, setUserData] = useState<any>(null);
-    const [userId, setUserId] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function ExploreEventsClient({
+    initialEventsData,
+    userData,
+    userId,
+    initialPage
+}: ExploreEventsClientProps) {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [sortBy, setSortBy] = useState<'date' | 'popularity' | 'name'>('date');
     const [showFilters, setShowFilters] = useState(false);
-    const [filteredEvents, setFilteredEvents] = useState<EventWithSubEvents[]>([]);
+    const [filteredEvents, setFilteredEvents] = useState<EventWithSubEvents[]>(initialEventsData?.events || []);
     const [activeFilters, setActiveFilters] = useState<EventFiltersType | null>(null);
 
     const router = useRouter();
     const searchParamsHook = useSearchParams();
-    const pathname = usePathname();
 
     // Helper functions for date calculations
     const isToday = (date: Date) => {
@@ -50,42 +45,9 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
         return date >= startOfWeek && date <= endOfWeek;
     };
 
-    // Fetch data on component mount
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const { userId: authUserId } = await auth();
-                const page = Number(searchParamsHook.get('page')) || 1;
-                const searchText = searchParamsHook.get('query') || '';
-                const category = searchParamsHook.get('category') || '';
-
-                const [events, user] = await Promise.all([
-                    getEvents({
-                        query: searchText,
-                        category,
-                        page,
-                        limit: 12,
-                    }),
-                    authUserId ? getUserByClerkId(authUserId) : Promise.resolve(null)
-                ]);
-
-                setEventsData(events);
-                setUserData(user);
-                setUserId(authUserId);
-                setFilteredEvents(events?.events || []);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchData();
-    }, []);
-
     // Calculate dynamic counts based on actual events
     const eventCounts = useMemo(() => {
-        if (!eventsData?.events || eventsData.events.length === 0) {
+        if (!initialEventsData?.events || initialEventsData.events.length === 0) {
             return {
                 today: 0,
                 thisWeek: 0,
@@ -95,7 +57,7 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
             };
         }
 
-        const events = eventsData.events;
+        const events = initialEventsData.events;
         const todayCount = events.filter(event =>
             event.startDate && isToday(new Date(event.startDate))
         ).length;
@@ -124,7 +86,7 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
             nearMe: nearMeCount,
             popular: popularCount
         };
-    }, [eventsData]);
+    }, [initialEventsData]);
 
     const quickFilters = [
         { label: 'This Week', icon: Calendar, count: eventCounts.thisWeek, filterKey: 'this-week', action: () => handleQuickFilter('this-week') },
@@ -205,8 +167,8 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
 
     const handleFiltersChange = (filters: EventFiltersType) => {
         setActiveFilters(filters);
-        if (eventsData?.events) {
-            const filtered = applyFilters(eventsData.events, filters);
+        if (initialEventsData?.events) {
+            const filtered = applyFilters(initialEventsData.events, filters);
             setFilteredEvents(filtered);
         }
     };
@@ -234,7 +196,7 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
 
     // Update filtered events when events, filters, or URL params change
     useEffect(() => {
-        if (!eventsData?.events) {
+        if (!initialEventsData?.events) {
             setFilteredEvents([]);
             return;
         }
@@ -244,28 +206,15 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
 
         setSortBy(urlSortBy as 'date' | 'popularity' | 'name');
 
-        let filtered = applyFilters(eventsData.events, activeFilters, quickFilter || undefined);
+        let filtered = applyFilters(initialEventsData.events, activeFilters, quickFilter || undefined);
         filtered = sortEvents(filtered, urlSortBy);
 
         setFilteredEvents(filtered);
-    }, [eventsData, activeFilters, searchParamsHook]);
-
-    if (loading) {
-        return (
-            <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading events...</p>
-                </div>
-            </main>
-        );
-    }
-
-    const page = Number(searchParamsHook.get('page')) || 1;
+    }, [initialEventsData, activeFilters, searchParamsHook]);
 
     return (
         <main className="min-h-screen bg-gray-50">
-            <section id="explore-events" className="py-12 bg-gray-50">
+            <section id="explore" className="py-12 bg-gray-50">
                 <div className="container mx-auto px-4 max-w-7xl">
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Desktop Filters Sidebar */}
@@ -314,7 +263,7 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
                                 {/* Search Bar */}
                                 <div className="mb-6">
                                     <SearchBar
-                                        route="/explore-events"
+                                        route="/explore"
                                         placeholder="Search events, organizers, locations..."
                                         otherClasses="w-full"
                                     />
@@ -415,7 +364,7 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
                                     {/* Results count and advanced filters toggle */}
                                     <div className="flex items-center gap-4">
                                         <span className="text-sm text-gray-500">
-                                            Showing {filteredEvents.length} of {eventsData?.events?.length || 0} events
+                                            Showing {filteredEvents.length} of {initialEventsData?.events?.length || 0} events
                                         </span>
                                     </div>
                                 </div>
@@ -441,8 +390,8 @@ export default function ExploreEventsPage({ searchParams }: SearchParamProps) {
                             {/* Pagination */}
                             <div className="flex justify-center">
                                 <Pagination
-                                    page={page}
-                                    totalPages={eventsData?.totalPages || 0}
+                                    page={initialPage}
+                                    totalPages={initialEventsData?.totalPages || 0}
                                 />
                             </div>
                         </div>

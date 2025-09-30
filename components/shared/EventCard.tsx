@@ -81,7 +81,7 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
             variant="default"
             size="sm"
             className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg"
-            showText={false}
+            showText={true}
           />
         </div>
       )}
@@ -160,8 +160,8 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
             </span>
           )}
 
-          {/* Delete button on non-profile pages only */}
-          {page !== "profile" && isOrganizer && <DeleteEventButton eventId={String(event._id)} />}
+          {/* Delete button on non-dashboard pages only */}
+          {page !== "dashboard" && isOrganizer && <DeleteEventButton eventId={String(event._id)} />}
         </div>
       </div>
     </div>

@@ -25,10 +25,10 @@ const Footer = () => {
 
   const footerLinks = {
     platform: [
-      { name: "Discover Events", href: "/explore-events" },
-      { name: "Create Event", href: "/create-event" },
+      { name: "Explore", href: "/explore" },
+      { name: "Create", href: "/create" },
       { name: "My Tickets", href: "/tickets" },
-      { name: "Profile", href: "/profile" }
+      { name: "Dashboard", href: "/dashboard" }
     ],
     campus: [
       { name: "Campus Map", href: "/map" },

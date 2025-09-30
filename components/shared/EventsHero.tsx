@@ -40,14 +40,14 @@ export default function EventsHero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-              <Link href="/create-event">
+              <Link href="/create">
                 <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-semibold">
                   Create New Event
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
 
-              <Link href="/profile">
+              <Link href="/dashboard">
                 <Button variant="outline" size="lg" className="bg-white/20 border-white/30 text-white hover:bg-white/30 px-8 py-4 rounded-full text-lg font-semibold">
                   Manage My Events
                 </Button>

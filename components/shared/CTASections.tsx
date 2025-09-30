@@ -50,7 +50,7 @@ export default function CTASections() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/create-event">
+                  <Link href="/create">
                     <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full text-lg font-semibold">
                       Start Creating Events
                       <ArrowRight className="ml-2 w-5 h-5" />
@@ -174,7 +174,7 @@ export default function CTASections() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/explore-events">
+                  <Link href="/explore">
                     <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-semibold">
                       Explore Events Now
                       <ArrowRight className="ml-2 w-5 h-5" />

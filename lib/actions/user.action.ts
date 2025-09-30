@@ -176,7 +176,7 @@ export async function likeEvent(eventId: string, userId: string) {
 		}
 
 		revalidatePath(`/`);
-		revalidatePath(`/likes`);
+		revalidatePath(`/wishlist`);
 
 		if (alreadyLiked) {
 			return true;
