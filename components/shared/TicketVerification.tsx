@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle, Loader2, Search, User, Mail, Calendar, Clock, MapPin, QrCode, Keyboard } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Search, User, Mail, Calendar, Clock, MapPin, QrCode, Keyboard, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { QRScanner } from '@/components/ui/qr-scanner';
 
@@ -46,7 +45,6 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
   const [entryCode, setEntryCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
-  const [activeTab, setActiveTab] = useState('manual');
   const { toast } = useToast();
 
   const verifyTicketCode = async (code: string) => {
@@ -153,7 +151,7 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
       <Card className="border-2 border-indigo-100">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
-            <Search className="w-6 h-6 text-indigo-600" />
+            <Shield className="w-6 h-6 text-indigo-600" />
             Verify Ticket
           </CardTitle>
           <CardDescription>
@@ -161,70 +159,65 @@ export default function TicketVerification({ eventId, eventTitle }: TicketVerifi
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="manual" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="manual" className="flex items-center gap-2">
-                <Keyboard className="w-4 h-4" />
-                Manual Entry
-              </TabsTrigger>
-              <TabsTrigger value="qr" className="flex items-center gap-2">
-                <QrCode className="w-4 h-4" />
-                QR Scanner
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="manual" className="mt-4">
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">Enter the 6-digit entry code manually</p>
-                <div className="flex gap-3">
-                  <Input
-                    type="text"
-                    placeholder="Enter 6-digit code"
-                    value={entryCode}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setEntryCode(value);
-                    }}
-                    onKeyDown={handleKeyPress}
-                    className="text-2xl font-mono tracking-widest text-center"
-                    maxLength={6}
-                    disabled={loading}
-                  />
-                  <Button
-                    onClick={handleManualVerify}
-                    disabled={loading || entryCode.length !== 6}
-                    size="lg"
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-5 h-5 mr-2" />
-                        Verify
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="qr" className="mt-4">
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">Scan the QR code from the attendee's ticket</p>
-                <QRScanner
-                  onScan={handleQRScan}
-                  onError={handleQRError}
-                  isLoading={loading}
-                  title="Scan Ticket QR Code"
-                  description="Position the QR code within the camera view"
+          {/* Manual Entry Section */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <Input
+                  type="text"
+                  placeholder="Enter 6-digit code"
+                  value={entryCode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setEntryCode(value);
+                  }}
+                  onKeyDown={handleKeyPress}
+                  className="text-xl font-mono tracking-widest text-center"
+                  maxLength={6}
+                  disabled={loading}
                 />
+                <Button
+                  onClick={handleManualVerify}
+                  disabled={loading || entryCode.length !== 6}
+                  size="lg"
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <Keyboard className="w-5 h-5 mr-2" />
+                      Verify
+                    </>
+                  )}
+                </Button>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-3 text-gray-500">OR</span>
+              </div>
+            </div>
+
+            {/* QR Scanner Section */}
+            <div className="space-y-4">
+              <QRScanner
+                onScan={handleQRScan}
+                onError={handleQRError}
+                isLoading={loading}
+                title="Scan Ticket QR Code"
+                description="Position the QR code within the camera view"
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
