@@ -101,14 +101,18 @@ export async function POST(request: NextRequest) {
 
 		// Build the task count string
 		const taskCount = isSubEvent ? '6-8' : '8-12';
-		
+
 		const prompt = `You are an expert event planner. Generate a comprehensive task list for organizing a ${eventType} event.
 
     ${eventTitle ? `Event Title: ${eventTitle}` : ''}
     ${eventDescription ? `Event Description: ${eventDescription}` : ''}
     ${eventContext}
 
-    ${isSubEvent ? 'This is a sub-event that is part of a larger main event.' : 'This is a standalone main event.'}
+    ${
+			isSubEvent
+				? 'This is a sub-event that is part of a larger main event.'
+				: 'This is a standalone main event.'
+		}
 
     Create tasks that cover all aspects of event planning including:
     - Initial planning and conceptualization
@@ -142,12 +146,14 @@ export async function POST(request: NextRequest) {
 		try {
 			const result = await generateText({
 				model: google('gemini-2.0-flash-exp'),
-				prompt: prompt + '\n\nReturn ONLY a valid JSON object with this structure: {"tasks": [...]}',
+				prompt:
+					prompt +
+					'\n\nReturn ONLY a valid JSON object with this structure: {"tasks": [...]}',
 			});
-			
+
 			// Parse the JSON response
 			tasksData = JSON.parse(result.text);
-			
+
 			// Validate the structure
 			if (!tasksData.tasks || !Array.isArray(tasksData.tasks)) {
 				throw new Error('Invalid response structure');
@@ -166,10 +172,12 @@ export async function POST(request: NextRequest) {
 				column: task.column,
 				priority: task.priority,
 				estimatedDuration: task.estimatedDuration,
-				subtasks: (task.subtasks || []).map((subtask: any, subIndex: number) => ({
-					id: `subtask_${baseId}_${index}_${subIndex}`,
-					content: subtask.content,
-				})),
+				subtasks: (task.subtasks || []).map(
+					(subtask: any, subIndex: number) => ({
+						id: `subtask_${baseId}_${index}_${subIndex}`,
+						content: subtask.content,
+					})
+				),
 			};
 		});
 
