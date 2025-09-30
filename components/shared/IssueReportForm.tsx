@@ -279,7 +279,7 @@ export default function IssueReportForm({ event, currentUserId, onClose, isModal
                                 </SelectTrigger>
                                 <SelectContent>
                                     {issueCategories[formData.category as keyof typeof issueCategories]?.subcategories.map((sub) => (
-                                        <SelectItem key={sub} value={sub} className="text-sm">{sub}</SelectItem>
+                                        <SelectItem key={sub} value={sub || 'other'} className="text-sm">{sub || 'Other'}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

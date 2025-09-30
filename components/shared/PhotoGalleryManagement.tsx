@@ -416,7 +416,7 @@ export default function PhotoGalleryManagement({
                       </SelectTrigger>
                       <SelectContent>
                         {galleries.map((gallery) => (
-                          <SelectItem key={gallery._id} value={gallery._id}>
+                          <SelectItem key={gallery._id} value={gallery._id || `gallery-${gallery.name}`}>
                             {gallery.name}
                           </SelectItem>
                         ))}

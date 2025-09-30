@@ -157,8 +157,8 @@ export default function PublicGalleryView({
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {gallery.categories.map((category: string) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                    <SelectItem key={category} value={category || 'uncategorized'}>
+                      {category || 'Uncategorized'}
                     </SelectItem>
                   ))}
                 </SelectContent>

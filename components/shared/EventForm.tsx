@@ -323,7 +323,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 											{categories.map((category, index) => (
 												<SelectItem
 													key={index}
-													value={category.title.toLowerCase()}
+													value={category.title.toLowerCase() || `category-${index}`}
 													className="flex items-center space-x-3 px-4 py-3 hover:bg-red-50 focus:bg-red-100 cursor-pointer transition-colors duration-150"
 												>
 													<div className="flex items-center space-x-2">
@@ -457,7 +457,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 										{campusLocations.map((location, index) => (
 											<SelectItem
 												key={index}
-												value={location.name}
+												value={location.name || `location-${index}`}
 												className="flex items-center space-x-3 px-4 py-3 hover:bg-red-50 focus:bg-red-100 cursor-pointer transition-colors duration-150"
 											>
 												<span className="text-gray-800 font-medium">

@@ -106,7 +106,7 @@ export function QRScanner({
             <SelectContent>
               <SelectItem value="default">Default Camera</SelectItem>
               {devices.map((device, index) => (
-                <SelectItem key={index} value={device.deviceId}>
+                <SelectItem key={index} value={device.deviceId || `device-${index}`}>
                   {device.label || `Camera ${index + 1}`}
                 </SelectItem>
               ))}
@@ -156,7 +156,7 @@ export function QRScanner({
               "data_matrix",
             ]}
             constraints={{
-              deviceId: deviceId === 'default' ? undefined : deviceId,
+              deviceId: deviceId === 'default' || deviceId.startsWith('device-') ? undefined : deviceId,
             }}
             onScan={(detectedCodes) => {
               if (detectedCodes.length > 0) {
