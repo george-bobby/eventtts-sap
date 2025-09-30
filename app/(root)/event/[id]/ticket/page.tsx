@@ -10,6 +10,7 @@ import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { getUserEventTickets } from '@/lib/actions/ticket.action';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
+import { ITicket } from '@/lib/models/ticket.model';
 import Image from 'next/image';
 
 interface TicketPageProps {
@@ -157,7 +158,7 @@ export default async function TicketPage({ params }: TicketPageProps) {
             Your Ticket{tickets.length > 1 ? 's' : ''} ({tickets.length})
           </h2>
 
-          {tickets.map((ticket, index) => (
+          {tickets.map((ticket: ITicket, index: number) => (
             <Card key={ticket._id} className="overflow-hidden shadow-lg border-2 border-indigo-100 hover:border-indigo-300 transition-all">
               <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
                 <div className="flex justify-between items-start">
