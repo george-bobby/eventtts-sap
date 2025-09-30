@@ -122,10 +122,12 @@ export default function EventAnalyticsDashboard({ eventId, event, organizerId }:
   }
 
   // Calculate derived metrics
-  const attendanceRate = event.totalCapacity > 0 ?
+  const attendanceRate = event.totalCapacity > 0 && event.totalCapacity !== -1 ?
     ((eventStats?.totalTicketsSold || 0) / event.totalCapacity * 100) : 0;
 
-  const ticketsRemaining = event.totalCapacity - (eventStats?.totalTicketsSold || 0);
+  const ticketsRemaining = event.totalCapacity === -1 ?
+    'Unlimited' :
+    (event.totalCapacity - (eventStats?.totalTicketsSold || 0));
 
   return (
     <div className="space-y-6">
@@ -149,12 +151,21 @@ export default function EventAnalyticsDashboard({ eventId, event, organizerId }:
               <div>
                 <p className="text-sm font-medium text-gray-600">Tickets Sold</p>
                 <p className="text-3xl font-bold text-gray-900">{eventStats?.totalTicketsSold || 0}</p>
-                <p className="text-sm text-gray-500">of {event.totalCapacity} capacity</p>
+                <p className="text-sm text-gray-500">
+                  of {event.totalCapacity === -1 ? 'unlimited' : event.totalCapacity} capacity
+                </p>
               </div>
               <Users className="w-8 h-8 text-blue-500" />
             </div>
-            <Progress value={attendanceRate} className="mt-3" />
-            <p className="text-xs text-gray-500 mt-1">{attendanceRate.toFixed(1)}% capacity filled</p>
+            {event.totalCapacity !== -1 && (
+              <>
+                <Progress value={attendanceRate} className="mt-3" />
+                <p className="text-xs text-gray-500 mt-1">{attendanceRate.toFixed(1)}% capacity filled</p>
+              </>
+            )}
+            {event.totalCapacity === -1 && (
+              <p className="text-xs text-gray-500 mt-3">Unlimited capacity event</p>
+            )}
           </CardContent>
         </Card>
 

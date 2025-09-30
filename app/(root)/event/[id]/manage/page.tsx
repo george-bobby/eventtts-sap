@@ -194,9 +194,12 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
                     <strong>Time:</strong> {timeFormatConverter(event.startTime)} - {timeFormatConverter(event.endTime)}
                   </p>
                   <p>
-                    <strong>Capacity:</strong> {event.totalCapacity} attendees
-                    {event.ticketsLeft !== undefined && (
+                    <strong>Capacity:</strong> {event.totalCapacity === -1 ? 'Unlimited' : `${event.totalCapacity} attendees`}
+                    {event.ticketsLeft !== undefined && event.ticketsLeft !== -1 && (
                       <span className="ml-2">({event.ticketsLeft} tickets remaining)</span>
+                    )}
+                    {event.ticketsLeft === -1 && (
+                      <span className="ml-2">(Unlimited tickets)</span>
                     )}
                   </p>
                 </div>

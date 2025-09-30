@@ -310,7 +310,7 @@ const ReportForm = ({ eventId, userId, event }: ReportFormProps) => {
                 Capacity
               </div>
               <p className="text-sm font-medium">
-                {event.totalCapacity} total seats
+                {event.totalCapacity === -1 ? 'Unlimited capacity' : `${event.totalCapacity} total seats`}
               </p>
             </div>
 

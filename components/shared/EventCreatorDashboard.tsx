@@ -138,8 +138,11 @@ export default function EventCreatorDashboard({ events }: EventCreatorDashboardP
                 </div>
                 <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                   <div className="text-sm text-gray-600">
-                    {event.ticketsLeft !== undefined && (
+                    {event.ticketsLeft !== undefined && event.ticketsLeft !== -1 && (
                       <span className="font-medium">{event.ticketsLeft} tickets remaining</span>
+                    )}
+                    {event.ticketsLeft === -1 && (
+                      <span className="font-medium">Unlimited tickets</span>
                     )}
                   </div>
                   <div className="flex gap-2 flex-wrap">

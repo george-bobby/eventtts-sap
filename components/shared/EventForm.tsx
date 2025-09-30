@@ -15,11 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { CustomDatePicker } from "@/components/ui/date-picker";
 import { Badge } from "@/components/ui/badge";
 import { categories } from "@/constants/categories";
 // Note: Temporary workaround for TypeScript module resolution issue
@@ -72,21 +68,20 @@ const subEventSchema = z.object({
 // ---------------- EVENT SCHEMA ----------------
 const formSchema = z.object({
 	title: z.string().trim().min(2, { message: "Title must be at least 2 characters." }),
-	category: z.string(),
+	category: z.string().min(1, { message: "Category is required." }),
 	tags: z.array(z.string().min(2, { message: "Tag must be at least 2 characters." }))
 		.min(1, { message: "At least one tag is required." }),
 	description: z.string().trim().min(2, { message: "Description must be at least 2 characters." }),
 	photo: z.string().optional(),
-	isOnline: z.boolean().optional(),
+	isOnline: z.boolean(),
 	location: z.string().trim().optional(),
-	landmark: z.string().trim().optional(),
 	campusLocation: z.string().trim().optional(),
-	startDate: z.date(),
-	endDate: z.date(),
-	startTime: z.string(),
-	endTime: z.string(),
+	startDate: z.date({ required_error: "Start date is required." }),
+	endDate: z.date({ required_error: "End date is required." }),
+	startTime: z.string().min(1, { message: "Start time is required." }),
+	endTime: z.string().min(1, { message: "End time is required." }),
 	duration: z.string().trim().optional(),
-	totalCapacity: z.string().trim().optional(),
+	totalCapacity: z.string().trim().min(1, { message: "Capacity is required." }),
 	isFree: z.boolean(),
 	price: z.string().trim().optional(),
 	ageRestriction: z.string().trim().optional(),
@@ -95,6 +90,19 @@ const formSchema = z.object({
 	// Feedback fields
 	feedbackEnabled: z.boolean().optional(),
 	feedbackHours: z.number().min(1).max(168).optional(), // 1 hour to 1 week
+}).refine((data) => {
+	// If event is physical (not online), location is required
+	if (!data.isOnline && (!data.location || data.location.trim() === '')) {
+		return false;
+	}
+	// If event is not free, price is required
+	if (!data.isFree && (!data.price || data.price.trim() === '')) {
+		return false;
+	}
+	return true;
+}, {
+	message: "Location is required for physical events and price is required for paid events.",
+	path: ["location"], // This will show the error on the location field
 });
 
 // Type alias for the form schema
@@ -156,7 +164,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 				photo: event.photo || "",
 				isOnline: event.isOnline || false,
 				location: event.location || "",
-				landmark: event.landmark || "",
 				campusLocation: event.campusLocation || "",
 				startDate: new Date(event.startDate),
 				endDate: new Date(event.endDate),
@@ -181,7 +188,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 			photo: "",
 			isOnline: false,
 			location: "",
-			landmark: "",
 			campusLocation: "",
 			startDate: new Date(),
 			endDate: new Date(),
@@ -330,7 +336,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 						name="category"
 						render={({ field }: { field: ControllerRenderProps<EventFormValues, "category"> }) => (
 							<FormItem className="w-full md:w-1/2">
-								<FormLabel className="text-gray-700 font-medium">Category</FormLabel>
+								<FormLabel className="text-gray-700 font-medium">Category *</FormLabel>
 								<FormControl>
 									<Select onValueChange={field.onChange} defaultValue={field.value}>
 										<SelectTrigger className="w-full h-12 border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200">
@@ -430,65 +436,92 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 					)}
 				/>
 
-				{/* Location Fields */}
-				<div className="flex flex-col gap-5 md:flex-row">
-					<FormField
-						control={form.control}
-						name="location"
-						render={({ field }: any) => (
-							<FormItem className="w-full">
-								<FormControl>
-									<Input placeholder="Event location or URL" {...field} className="input-field" />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="landmark"
-						render={({ field }: any) => (
-							<FormItem className="w-full">
-								<FormControl>
-									<Input placeholder="Nearby landmark" {...field} className="input-field" />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				</div>
-
-				{/* Campus Location Field */}
+				{/* Event Type Toggle */}
 				<FormField
 					control={form.control}
-					name="campusLocation"
+					name="isOnline"
 					render={({ field }: any) => (
 						<FormItem className="w-full">
-							<FormLabel className="text-gray-700 font-medium">Campus Location (for Navigation)</FormLabel>
+							<FormLabel className="text-gray-700 font-medium">Event Type *</FormLabel>
 							<FormControl>
-								<Select onValueChange={field.onChange} defaultValue={field.value}>
-									<SelectTrigger className="w-full h-12 border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200">
-										<SelectValue placeholder="Select Campus Location" className="text-gray-700" />
-									</SelectTrigger>
-									<SelectContent className="max-h-60 w-full bg-white border border-gray-200 rounded-lg shadow-xl">
-										{campusLocations.map((location: { name: string; lat: number; lng: number }, index: number) => (
-											<SelectItem
-												key={index}
-												value={location.name || `location-${index}`}
-												className="flex items-center space-x-3 px-4 py-3 hover:bg-red-50 focus:bg-red-100 cursor-pointer transition-colors duration-150"
-											>
-												<span className="text-gray-800 font-medium">
-													{location.name}
-												</span>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								<div className="flex items-center space-x-4">
+									<label className="flex items-center space-x-2 cursor-pointer">
+										<input
+											type="radio"
+											checked={!field.value}
+											onChange={() => field.onChange(false)}
+											className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+										/>
+										<span className="text-sm font-medium text-gray-700">Physical Event</span>
+									</label>
+									<label className="flex items-center space-x-2 cursor-pointer">
+										<input
+											type="radio"
+											checked={field.value}
+											onChange={() => field.onChange(true)}
+											className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+										/>
+										<span className="text-sm font-medium text-gray-700">Virtual Event</span>
+									</label>
+								</div>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
+
+				{/* Location Fields - Only show for physical events */}
+				{!form.watch("isOnline") && (
+					<>
+						<div className="flex flex-col gap-5 md:flex-row">
+							<FormField
+								control={form.control}
+								name="location"
+								render={({ field }: any) => (
+									<FormItem className="w-full">
+										<FormLabel className="text-gray-700 font-medium">Event Location *</FormLabel>
+										<FormControl>
+											<Input placeholder="Event location" {...field} className="input-field" />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+
+						{/* Campus Location Field */}
+						<FormField
+							control={form.control}
+							name="campusLocation"
+							render={({ field }: any) => (
+								<FormItem className="w-full">
+									<FormLabel className="text-gray-700 font-medium">Campus Location (for Navigation)</FormLabel>
+									<FormControl>
+										<Select onValueChange={field.onChange} defaultValue={field.value}>
+											<SelectTrigger className="w-full h-12 border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200">
+												<SelectValue placeholder="Select Campus Location" className="text-gray-700" />
+											</SelectTrigger>
+											<SelectContent className="max-h-60 w-full bg-white border border-gray-200 rounded-lg shadow-xl">
+												{campusLocations.map((location: { name: string; lat: number; lng: number }, index: number) => (
+													<SelectItem
+														key={index}
+														value={location.name || `location-${index}`}
+														className="flex items-center space-x-3 px-4 py-3 hover:bg-red-50 focus:bg-red-100 cursor-pointer transition-colors duration-150"
+													>
+														<span className="text-gray-800 font-medium">
+															{location.name}
+														</span>
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</>
+				)}
 
 				{/* Date Fields */}
 				<div className="flex flex-col gap-5 md:flex-row">
@@ -497,36 +530,17 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 						name="startDate"
 						render={({ field }: any) => (
 							<FormItem className="w-full">
+								<FormLabel className="text-gray-700 font-medium">Start Date *</FormLabel>
 								<FormControl>
-									<Popover>
-										<PopoverTrigger asChild>
-											<Button
-												variant={"outline"}
-												className={cn(
-													"w-full pl-3 text-left font-normal",
-													!field.value && "text-muted-foreground"
-												)}
-											>
-												{field.value ? (
-													format(field.value, "PPP")
-												) : (
-													<span>Pick start date</span>
-												)}
-												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-											</Button>
-										</PopoverTrigger>
-										<PopoverContent className="w-auto p-0" align="start">
-											<Calendar
-												mode="single"
-												selected={field.value}
-												onSelect={field.onChange}
-												disabled={(date: Date) =>
-													date < new Date() || date < new Date("1900-01-01")
-												}
-												initialFocus
-											/>
-										</PopoverContent>
-									</Popover>
+									<CustomDatePicker
+										selected={field.value}
+										onChange={field.onChange}
+										placeholder="Pick start date"
+										disabled={(date: Date) =>
+											date < new Date() || date < new Date("1900-01-01")
+										}
+										minDate={new Date()}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -538,36 +552,17 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 						name="endDate"
 						render={({ field }: any) => (
 							<FormItem className="w-full">
+								<FormLabel className="text-gray-700 font-medium">End Date *</FormLabel>
 								<FormControl>
-									<Popover>
-										<PopoverTrigger asChild>
-											<Button
-												variant={"outline"}
-												className={cn(
-													"w-full pl-3 text-left font-normal",
-													!field.value && "text-muted-foreground"
-												)}
-											>
-												{field.value ? (
-													format(field.value, "PPP")
-												) : (
-													<span>Pick end date</span>
-												)}
-												<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-											</Button>
-										</PopoverTrigger>
-										<PopoverContent className="w-auto p-0" align="start">
-											<Calendar
-												mode="single"
-												selected={field.value}
-												onSelect={field.onChange}
-												disabled={(date: Date) =>
-													date < new Date() || date < new Date("1900-01-01")
-												}
-												initialFocus
-											/>
-										</PopoverContent>
-									</Popover>
+									<CustomDatePicker
+										selected={field.value}
+										onChange={field.onChange}
+										placeholder="Pick end date"
+										disabled={(date: Date) =>
+											date < new Date() || date < new Date("1900-01-01")
+										}
+										minDate={new Date()}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -582,6 +577,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 						name="startTime"
 						render={({ field }: any) => (
 							<FormItem className="w-full">
+								<FormLabel className="text-gray-700 font-medium">Start Time *</FormLabel>
 								<FormControl>
 									<Input type="time" {...field} className="input-field" />
 								</FormControl>
@@ -595,6 +591,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 						name="endTime"
 						render={({ field }: any) => (
 							<FormItem className="w-full">
+								<FormLabel className="text-gray-700 font-medium">End Time *</FormLabel>
 								<FormControl>
 									<Input type="time" {...field} className="input-field" />
 								</FormControl>
@@ -676,17 +673,18 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 					name="totalCapacity"
 					render={({ field }: any) => (
 						<FormItem className="w-full">
+							<FormLabel className="text-gray-700 font-medium">Event Capacity *</FormLabel>
 							<FormControl>
 								<Input
 									type="number"
-									placeholder="Total capacity (leave empty for unlimited)"
+									placeholder="Enter capacity (e.g., 100) or -1 for unlimited"
 									{...field}
 									className="input-field"
-									min="1"
+									min="-1"
 								/>
 							</FormControl>
 							<FormDescription className="text-xs text-gray-500">
-								Set a maximum number of registrants. Leave empty for unlimited capacity.
+								Set a maximum number of registrants. Enter -1 for unlimited capacity.
 							</FormDescription>
 							<FormMessage />
 						</FormItem>
@@ -712,7 +710,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 					<div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
 						<h3 className="text-xl font-bold mb-2 text-blue-900">📝 Feedback Collection</h3>
 						<p className="text-blue-700 mb-6">
-							Gather valuable insights from your attendees with automated feedback collection
+							You can configure feedback questions in the event management page after creating the event.
 						</p>
 
 						{/* Feedback Enabled */}
@@ -732,9 +730,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 										<FormLabel className="text-base font-semibold text-gray-900">
 											Enable feedback collection
 										</FormLabel>
-										<FormDescription className="text-gray-600">
-											You can configure feedback questions in the event management page after creating the event.
-										</FormDescription>
 									</div>
 								</FormItem>
 							)}

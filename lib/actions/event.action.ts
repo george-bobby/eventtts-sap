@@ -507,6 +507,8 @@ export async function getEventById(
 								in: {
 									_id: '$$org._id',
 									username: '$$org.username',
+									firstName: '$$org.firstName',
+									lastName: '$$org.lastName',
 									photo: '$$org.photo',
 								},
 							},

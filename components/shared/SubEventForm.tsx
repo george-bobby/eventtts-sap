@@ -1,9 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import {
   FormControl,
   FormField,
@@ -13,11 +10,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { FileUploader } from "./FileUploader";
+import { CustomDatePicker } from "@/components/ui/date-picker";
 
 interface Props {
   index: number;
@@ -87,35 +83,15 @@ const SubEventForm = ({ index }: Props) => {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Start Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <CustomDatePicker
+                  selected={field.value}
+                  onChange={field.onChange}
+                  placeholder="Pick a date"
+                  disabled={(date) => date < new Date()}
+                  minDate={new Date()}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -127,35 +103,15 @@ const SubEventForm = ({ index }: Props) => {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>End Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <CustomDatePicker
+                  selected={field.value}
+                  onChange={field.onChange}
+                  placeholder="Pick a date"
+                  disabled={(date) => date < new Date()}
+                  minDate={new Date()}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

@@ -9,8 +9,10 @@ import { ArrowLeft, Calendar, Clock, MapPin, Ticket as TicketIcon, CheckCircle, 
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { getUserEventTickets } from '@/lib/actions/ticket.action';
+import { checkUserRegistration, getOrdersByUserId } from '@/lib/actions/order.action';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
 import { ITicket } from '@/lib/models/ticket.model';
+import { IOrder } from '@/types';
 import Image from 'next/image';
 import { TicketQRCode } from '@/components/ui/qr-code';
 
@@ -37,8 +39,35 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
     redirect('/');
   }
 
+  // Check if user is registered for this event
+  const isRegistered = await checkUserRegistration({
+    userId: user._id,
+    eventId: id,
+  });
+
+  // Get user's orders to debug
+  const userOrders = await getOrdersByUserId({
+    userId: user._id,
+    page: 1,
+    limit: 10,
+  });
+
   // Get user's tickets for this event
   const tickets = await getUserEventTickets(user._id, id);
+
+  console.log('Debug info:', {
+    userId: user._id,
+    eventId: id,
+    isRegistered,
+    userOrdersCount: userOrders.data.length,
+    ticketsFound: tickets.length,
+    userOrders: userOrders.data.map((order: IOrder) => ({
+      id: order._id,
+      eventId: order.event._id,
+      eventTitle: order.event.title,
+      totalTickets: order.totalTickets
+    }))
+  });
 
   if (!tickets || tickets.length === 0) {
     return (
@@ -48,12 +77,25 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
             <CardTitle className="text-red-600">No Tickets Found</CardTitle>
             <CardDescription>
               You don't have any tickets for this event.
+              {isRegistered && (
+                <div className="mt-2 text-sm text-orange-600">
+                  You are registered for this event, but tickets may still be generating. Please try again in a few moments.
+                </div>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <Button asChild>
               <Link href={`/event/${id}`}>View Event</Link>
             </Button>
+            {process.env.NODE_ENV === 'development' && (
+              <div className="text-xs text-gray-500 mt-4">
+                <p>Debug: User ID: {user._id}</p>
+                <p>Event ID: {id}</p>
+                <p>Is Registered: {isRegistered ? 'Yes' : 'No'}</p>
+                <p>Orders Count: {userOrders.data.length}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -76,18 +118,18 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-rose-50 to-pink-50">
       {/* Header */}
-      <section className="bg-gradient-to-r from-indigo-600 to-purple-600 py-8">
+      <section className="bg-gradient-to-r from-red-600 to-rose-600 py-8">
         <div className="max-w-4xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-4">
-            <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">
+            <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
               <Link href={`/event/${id}`}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Event
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">
+            <Button asChild variant="outline" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
               <Link href="/dashboard">
                 Dashboard
               </Link>
@@ -97,7 +139,7 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
             <TicketIcon className="w-8 h-8" />
             My Ticket{tickets.length > 1 ? 's' : ''}
           </h1>
-          <p className="text-indigo-100 mt-2">
+          <p className="text-red-100 mt-2">
             {event.title}
           </p>
         </div>
@@ -145,7 +187,7 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
                 className="object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-r from-red-500 to-rose-600 flex items-center justify-center">
                 <span className="text-white text-2xl font-bold">{event.title}</span>
               </div>
             )}
@@ -159,21 +201,21 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-3 text-gray-700">
-                <Calendar className="w-5 h-5 text-indigo-600" />
+                <Calendar className="w-5 h-5 text-red-600" />
                 <div>
                   <p className="text-sm text-gray-500">Date</p>
                   <p className="font-medium">{dateConverter(event.startDate as unknown as string)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-gray-700">
-                <Clock className="w-5 h-5 text-indigo-600" />
+                <Clock className="w-5 h-5 text-red-600" />
                 <div>
                   <p className="text-sm text-gray-500">Time</p>
                   <p className="font-medium">{timeFormatConverter(event.startTime)} - {timeFormatConverter(event.endTime)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-gray-700 md:col-span-2">
-                <MapPin className="w-5 h-5 text-indigo-600" />
+                <MapPin className="w-5 h-5 text-red-600" />
                 <div>
                   <p className="text-sm text-gray-500">Location</p>
                   <p className="font-medium">{event.location || 'Online Event'}</p>
@@ -186,13 +228,13 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
         {/* Tickets */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <TicketIcon className="w-6 h-6 text-indigo-600" />
+            <TicketIcon className="w-6 h-6 text-red-600" />
             Your Ticket{tickets.length > 1 ? 's' : ''} ({tickets.length})
           </h2>
 
           {tickets.map((ticket: ITicket, index: number) => (
-            <Card key={ticket._id} className="overflow-hidden shadow-lg border-2 border-indigo-100 hover:border-indigo-300 transition-all">
-              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+            <Card key={ticket._id} className="overflow-hidden shadow-lg border-2 border-red-100 hover:border-red-300 transition-all">
+              <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50">
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">Ticket {index + 1}</CardTitle>
@@ -207,8 +249,8 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
               </CardHeader>
               <CardContent className="pt-6">
                 {/* Entry Code - Prominent Display with QR Code */}
-                <div className="bg-white border-4 border-dashed border-indigo-400 rounded-xl p-6 mb-6">
-                  <p className="text-sm font-semibold text-indigo-600 mb-4 uppercase tracking-wide text-center">Entry Code</p>
+                <div className="bg-white border-4 border-dashed border-red-400 rounded-xl p-6 mb-6">
+                  <p className="text-sm font-semibold text-red-600 mb-4 uppercase tracking-wide text-center">Entry Code</p>
 
                   {/* Responsive layout: QR code and text side by side on larger screens, stacked on mobile */}
                   <div className="flex flex-col md:flex-row items-center justify-center gap-6">
@@ -227,7 +269,7 @@ export default async function TicketPage({ params, searchParams }: TicketPagePro
 
                     {/* Text Code */}
                     <div className="text-center">
-                      <p className="text-4xl md:text-5xl font-bold text-indigo-600 tracking-[0.3em] font-mono">
+                      <p className="text-4xl md:text-5xl font-bold text-red-600 tracking-[0.3em] font-mono">
                         {ticket.entryCode}
                       </p>
                       <p className="text-xs text-gray-500 mt-2">
