@@ -65,7 +65,7 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
           <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
             <Link href={`/event/${event._id}/manage`} className="flex items-center gap-1">
               <Settings className="w-3 h-3" />
-              Manage
+              Manage Event
             </Link>
           </Button>
         </div>
