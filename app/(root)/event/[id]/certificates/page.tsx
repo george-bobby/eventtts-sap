@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getCertificateTemplates } from '@/lib/actions/certificate.action';
 import { getEventStakeholders } from '@/lib/actions/stakeholder.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
-import CertificateManagement from '@/components/certificates/CertificateManagement';
+import CertificateManagement from '@/components/shared/CertificateManagement';
 
 interface CertificatesPageProps {
   params: Promise<{

@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { getEventPhotoGalleries } from '@/lib/actions/gallery.action';
-import PhotoGalleryManagement from '@/components/gallery/PhotoGalleryManagement';
+import PhotoGalleryManagement from '@/components/shared/PhotoGalleryManagement';
 
 interface GalleryPageProps {
   params: Promise<{ id: string }>;

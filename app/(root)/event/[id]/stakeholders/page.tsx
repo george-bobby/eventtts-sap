@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventStakeholders, getStakeholderStats } from '@/lib/actions/stakeholder.action';
-import StakeholderManagement from '@/components/stakeholders/StakeholderManagement';
+import StakeholderManagement from '@/components/shared/StakeholderManagement';
 
 interface StakeholdersPageProps {
   params: Promise<{

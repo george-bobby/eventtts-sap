@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
-import QRCodeManagement from '@/components/qrcode/QRCodeManagement';
+import QRCodeManagement from '@/components/shared/QRCodeManagement';
 
 interface EventQRCodePageProps {
   params: Promise<{ id: string }>;

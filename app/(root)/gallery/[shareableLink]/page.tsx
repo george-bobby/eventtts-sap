@@ -1,6 +1,6 @@
 import { getPhotoGallery, getGalleryPhotos } from '@/lib/actions/gallery.action';
 import { notFound } from 'next/navigation';
-import PublicGalleryView from '@/components/gallery/PublicGalleryView';
+import PublicGalleryView from '@/components/shared/PublicGalleryView';
 
 interface PublicGalleryPageProps {
   params: Promise<{

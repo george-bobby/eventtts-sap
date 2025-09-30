@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
-import EventUpdatesManagement from '@/components/eventupdates/EventUpdatesManagement';
+import EventUpdatesManagement from '@/components/shared/EventUpdatesManagement';
 
 interface EventUpdatesPageProps {
   params: Promise<{ id: string }>;

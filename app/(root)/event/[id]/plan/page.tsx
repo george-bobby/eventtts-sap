@@ -1,4 +1,4 @@
-import EventPlanner from '@/components/EventPlanner';
+import EventPlanner from '@/components/shared/EventPlanner';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { auth } from '@clerk/nextjs';

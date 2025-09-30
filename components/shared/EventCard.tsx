@@ -60,38 +60,29 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
         />
       )}
 
-      {/* Hover overlay for organized events on profile page */}
-      {isOrganizer && page === "profile" && !isBookedEvent && (
-        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-lg z-10">
-          <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg border-2 border-white/20">
-            <Link href={`/event/${event._id}/manage`} className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Manage Event
+      {/* Small hover buttons for all pages - Manage button for organizers */}
+      {isOrganizer && (
+        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
+            <Link href={`/event/${event._id}/manage`} className="flex items-center gap-1">
+              <Settings className="w-3 h-3" />
+              Manage
             </Link>
           </Button>
         </div>
       )}
 
-      {/* Hover overlay for booked events on profile page */}
-      {isBookedEvent && currentUserId && page === "profile" && (
-        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-lg z-10">
+      {/* Small hover button for booked events - Report Issue */}
+      {isBookedEvent && currentUserId && !isOrganizer && (
+        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
           <RaiseIssueButton
             event={event}
             currentUserId={currentUserId}
             variant="default"
-            size="lg"
-            className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-2 shadow-lg border-2 border-white/20"
-            showText={true}
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg"
+            showText={false}
           />
-        </div>
-      )}
-
-      {/* Only show Manage button for organizer on explore events page and event detail pages */}
-      {isOrganizer && (page === "explore" || page === "event-detail") && (
-        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100">
-          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700">
-            <Link href={`/event/${event._id}/manage`}>Manage</Link>
-          </Button>
         </div>
       )}
 
