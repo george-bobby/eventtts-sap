@@ -2,13 +2,17 @@
 
 import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
+import { ObjectId } from 'mongodb';
 import Order from '../models/order.model';
 import User from '../models/user.model';
 import Event from '../models/event.model';
+import Ticket from '../models/ticket.model';
 import { connectToDatabase } from '../dbconnection';
 import { revalidatePath } from 'next/cache';
 import Category from '../models/category.model';
 import Tag from '../models/tag.model';
+import { createTicket } from './ticket.action';
+import { sendTicketConfirmationEmail } from '../email/resend';
 
 interface EventReference {
 	_id: string;
@@ -217,6 +221,54 @@ export async function createOrder(order: createOrderParams) {
 		// Create the order
 		const newOrder = await Order.create(orderData);
 
+		// Generate tickets for each ticket in the order
+		const tickets = [];
+		for (let i = 0; i < order.totalTickets; i++) {
+			try {
+				const ticket = await createTicket({
+					eventId: event._id.toString(),
+					userId: order.user.toString(),
+					orderId: newOrder._id.toString(),
+					metadata: {
+						ticketType: 'General Admission',
+						additionalInfo: `Ticket ${i + 1} of ${order.totalTickets}`,
+					},
+				});
+				tickets.push(ticket);
+			} catch (error) {
+				console.error(`Error creating ticket ${i + 1}:`, error);
+			}
+		}
+
+		// Send ticket confirmation email to user
+		try {
+			const userDoc = await User.findById(order.user);
+			if (userDoc && tickets.length > 0) {
+				await sendTicketConfirmationEmail({
+					eventTitle: event.title,
+					eventId: event._id.toString(),
+					attendeeName: `${userDoc.firstName} ${userDoc.lastName}`,
+					attendeeEmail: userDoc.email,
+					eventDate: event.startDate.toLocaleDateString('en-US', {
+						weekday: 'long',
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric',
+					}),
+					eventTime: event.startTime,
+					eventLocation: event.location || 'Online',
+					totalTickets: order.totalTickets,
+					tickets: tickets.map((t) => ({
+						ticketId: t.ticketId,
+						entryCode: t.entryCode,
+					})),
+				});
+			}
+		} catch (emailError) {
+			console.error('Error sending ticket confirmation email:', emailError);
+			// Don't throw error here to prevent order creation failure due to email issues
+		}
+
 		// Update ticket count for the target event (only if not unlimited)
 		if (
 			targetEvent.ticketsLeft !== undefined &&
@@ -402,21 +454,66 @@ export async function getEventAttendees({
 			});
 		}
 
+		// Get verification status for all attendees
+		const userIds = filteredOrders.map((order: any) => order.user._id);
+		const verificationData = await Ticket.aggregate([
+			{
+				$match: {
+					event: new ObjectId(eventId),
+					user: { $in: userIds },
+				},
+			},
+			{
+				$group: {
+					_id: '$user',
+					totalTickets: { $sum: 1 },
+					verifiedTickets: {
+						$sum: {
+							$cond: [{ $eq: ['$status', 'used'] }, 1, 0],
+						},
+					},
+				},
+			},
+		]);
+
+		// Create a map for quick lookup
+		const verificationMap = new Map(
+			verificationData.map((item: any) => [
+				item._id.toString(),
+				{
+					verifiedTickets: item.verifiedTickets,
+					totalTickets: item.totalTickets,
+				},
+			])
+		);
+
 		// Transform orders to attendee format
-		const attendees = filteredOrders.map((order: any) => ({
-			_id: order.user._id,
-			firstName: order.user.firstName,
-			lastName: order.user.lastName,
-			email: order.user.email,
-			photo: order.user.photo,
-			registrationDate: order.createdAt,
-			totalTickets: order.totalTickets,
-			totalAmount: order.totalAmount,
-			paymentStatus: order.stripeId.startsWith('free-event')
-				? 'completed'
-				: 'completed', // For now, all orders are completed
-			stripeId: order.stripeId,
-		}));
+		const attendees = filteredOrders.map((order: any) => {
+			const userId = order.user._id.toString();
+			const verification = verificationMap.get(userId) || {
+				verifiedTickets: 0,
+				totalTickets: order.totalTickets,
+			};
+
+			return {
+				_id: order.user._id,
+				firstName: order.user.firstName,
+				lastName: order.user.lastName,
+				email: order.user.email,
+				photo: order.user.photo,
+				registrationDate: order.createdAt,
+				totalTickets: order.totalTickets,
+				totalAmount: order.totalAmount,
+				paymentStatus: order.stripeId.startsWith('free-event')
+					? 'completed'
+					: 'completed', // For now, all orders are completed
+				stripeId: order.stripeId,
+				verifiedTickets: verification.verifiedTickets,
+				totalVerified:
+					verification.verifiedTickets === verification.totalTickets &&
+					verification.totalTickets > 0,
+			};
+		});
 
 		// Get total count for pagination
 		const totalOrders = await Order.countDocuments({ event: eventId });
@@ -464,20 +561,70 @@ export async function exportEventAttendeesToExcel({
 				select: 'firstName lastName email photo clerkId',
 			});
 
+		// Get verification status for all attendees
+		const userIds = orders.map((order: any) => order.user._id);
+		const verificationData = await Ticket.aggregate([
+			{
+				$match: {
+					event: new ObjectId(eventId),
+					user: { $in: userIds },
+				},
+			},
+			{
+				$group: {
+					_id: '$user',
+					totalTickets: { $sum: 1 },
+					verifiedTickets: {
+						$sum: {
+							$cond: [{ $eq: ['$status', 'used'] }, 1, 0],
+						},
+					},
+				},
+			},
+		]);
+
+		// Create a map for quick lookup
+		const verificationMap = new Map(
+			verificationData.map((item: any) => [
+				item._id.toString(),
+				{
+					verifiedTickets: item.verifiedTickets,
+					totalTickets: item.totalTickets,
+				},
+			])
+		);
+
 		// Transform orders to attendee format
-		const attendees = orders.map((order: any) => ({
-			'First Name': order.user.firstName,
-			'Last Name': order.user.lastName,
-			'Email': order.user.email,
-			'Registration Date': new Date(order.createdAt).toLocaleDateString(),
-			'Registration Time': new Date(order.createdAt).toLocaleTimeString(),
-			'Tickets Purchased': order.totalTickets,
-			'Amount Paid': order.totalAmount === 0 ? 'Free' : `₹${order.totalAmount}`,
-			'Payment Status': order.stripeId.startsWith('free-event')
-				? 'Free Event'
-				: 'Paid',
-			'Transaction ID': order.stripeId,
-		}));
+		const attendees = orders.map((order: any) => {
+			const userId = order.user._id.toString();
+			const verification = verificationMap.get(userId) || {
+				verifiedTickets: 0,
+				totalTickets: order.totalTickets,
+			};
+
+			return {
+				'First Name': order.user.firstName,
+				'Last Name': order.user.lastName,
+				'Email': order.user.email,
+				'Registration Date': new Date(order.createdAt).toLocaleDateString(),
+				'Registration Time': new Date(order.createdAt).toLocaleTimeString(),
+				'Tickets Purchased': order.totalTickets,
+				'Tickets Verified': verification.verifiedTickets,
+				'Verification Status':
+					verification.verifiedTickets === verification.totalTickets &&
+					verification.totalTickets > 0
+						? 'All Verified'
+						: verification.verifiedTickets > 0
+						? `Partial (${verification.verifiedTickets}/${verification.totalTickets})`
+						: 'Not Verified',
+				'Amount Paid':
+					order.totalAmount === 0 ? 'Free' : `₹${order.totalAmount}`,
+				'Payment Status': order.stripeId.startsWith('free-event')
+					? 'Free Event'
+					: 'Paid',
+				'Transaction ID': order.stripeId,
+			};
+		});
 
 		// Calculate statistics
 		const totalAttendees = attendees.length;

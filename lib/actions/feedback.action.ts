@@ -336,7 +336,7 @@ export async function processPendingFeedbackEmails() {
 					eventDate: event.startDate.toLocaleDateString(),
 					feedbackUrl: `${
 						process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-					}/event/${event._id}/feedback`,
+					}/event/${event._id}/submit/feedback`,
 					organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
 				}));
 

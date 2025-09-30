@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
-import { scanQRCode } from '@/lib/actions/qrcode.action';
+import { verifyTicket } from '@/lib/actions/ticket.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 
 /**
- * POST /api/qrcode/scan - Scan and validate a QR code
+ * POST /api/tickets/verify - Verify a ticket using entry code
  */
 export async function POST(request: NextRequest) {
   try {
@@ -20,41 +20,50 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { qrCodeData } = body;
+    const { entryCode, eventId } = body;
 
-    if (!qrCodeData) {
+    if (!entryCode) {
       return NextResponse.json(
-        { error: 'QR code data is required' },
+        { error: 'Entry code is required' },
         { status: 400 }
       );
     }
 
-    const result = await scanQRCode({
-      qrCodeData,
-      scannedBy: mongoUser._id,
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'Event ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const result = await verifyTicket({
+      entryCode,
+      eventId,
+      verifiedBy: mongoUser._id,
     });
 
     if (result.success) {
       return NextResponse.json({
         success: true,
         message: result.message,
-        data: result.qrCode,
+        ticket: result.ticket,
       });
     } else {
       return NextResponse.json({
         success: false,
         message: result.message,
-        data: result.qrCode || null,
+        ticket: result.ticket || null,
       }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error scanning QR code:', error);
+    console.error('Error verifying ticket:', error);
     return NextResponse.json(
       {
-        error: 'Failed to scan QR code',
+        error: 'Failed to verify ticket',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
   }
 }
+

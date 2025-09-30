@@ -204,6 +204,8 @@ export interface IAttendee {
 	totalAmount: number;
 	paymentStatus: 'completed' | 'pending' | 'failed';
 	stripeId: string;
+	verifiedTickets?: number; // Number of verified tickets
+	totalVerified?: boolean; // Whether all tickets are verified
 }
 
 export type GetEventAttendeesParams = {

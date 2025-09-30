@@ -30,8 +30,6 @@ import { useRouter } from "next/navigation";
 import { FileUploader } from "./FileUploader";
 import SubEventForm from "./SubEventForm";
 import { useUploadThing } from "@/lib/uploadthing";
-import DefaultQuestionsManager from "./DefaultQuestionsManager";
-import CustomQuestionsManager from "./CustomQuestionsManager";
 
 import {
 	Select,
@@ -55,15 +53,6 @@ const subEventSchema = z.object({
 	isFree: z.boolean(),
 	price: z.string().trim().optional(),
 	totalCapacity: z.string().trim().optional(),
-});
-
-// ---------------- CUSTOM QUESTION SCHEMA ----------------
-const customQuestionSchema = z.object({
-	id: z.string(),
-	question: z.string().min(5, { message: "Question must be at least 5 characters." }),
-	type: z.enum(['rating', 'text', 'multipleChoice', 'yesNo']),
-	required: z.boolean(),
-	options: z.array(z.string()).optional(),
 });
 
 // ---------------- EVENT SCHEMA ----------------
@@ -92,7 +81,6 @@ const formSchema = z.object({
 	// Feedback fields
 	feedbackEnabled: z.boolean().optional(),
 	feedbackHours: z.number().min(1).max(168).optional(), // 1 hour to 1 week
-	customQuestions: z.array(customQuestionSchema).optional(),
 });
 
 // ---------------- INTERFACES ----------------
@@ -166,7 +154,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 				subEvents: [],
 				feedbackEnabled: (event as any).feedbackEnabled ?? true,
 				feedbackHours: (event as any).feedbackHours || 2,
-				customQuestions: [],
 			};
 		}
 		return {
@@ -192,7 +179,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 			subEvents: [],
 			feedbackEnabled: true,
 			feedbackHours: 2,
-			customQuestions: [],
 		};
 	};
 
@@ -739,68 +725,42 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 
 						{/* Feedback Hours */}
 						{form.watch("feedbackEnabled") && (
-							<div className="space-y-6">
-								<FormField
-									control={form.control}
-									name="feedbackHours"
-									render={({ field }) => (
-										<FormItem className="w-full max-w-sm">
-											<FormLabel className="text-base font-medium text-gray-900">
-												Send feedback email after
-											</FormLabel>
-											<Select
-												onValueChange={(value) => field.onChange(parseInt(value))}
-												defaultValue={field.value?.toString()}
-											>
-												<FormControl>
-													<SelectTrigger className="h-12 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-														<SelectValue placeholder="Select timing" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													<SelectItem value="1">1 hour</SelectItem>
-													<SelectItem value="2">2 hours</SelectItem>
-													<SelectItem value="4">4 hours</SelectItem>
-													<SelectItem value="8">8 hours</SelectItem>
-													<SelectItem value="12">12 hours</SelectItem>
-													<SelectItem value="24">1 day</SelectItem>
-													<SelectItem value="48">2 days</SelectItem>
-													<SelectItem value="72">3 days</SelectItem>
-													<SelectItem value="168">1 week</SelectItem>
-												</SelectContent>
-											</Select>
-											<FormDescription className="text-gray-600">
-												How long after the event ends should feedback emails be sent
-											</FormDescription>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								{/* Default Questions Manager */}
-								<div className="border-t border-blue-200 pt-6">
-									<DefaultQuestionsManager
-										isOnline={form.watch("isOnline") || false}
-									/>
-								</div>
-
-								{/* Custom Questions Manager */}
-								<div className="border-t border-blue-200 pt-6">
-									<FormField
-										control={form.control}
-										name="customQuestions"
-										render={({ field }) => (
-											<FormItem>
-												<CustomQuestionsManager
-													questions={field.value || []}
-													onQuestionsChange={field.onChange}
-												/>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								</div>
-							</div>
+							<FormField
+								control={form.control}
+								name="feedbackHours"
+								render={({ field }) => (
+									<FormItem className="w-full max-w-sm">
+										<FormLabel className="text-base font-medium text-gray-900">
+											Send feedback email after
+										</FormLabel>
+										<Select
+											onValueChange={(value) => field.onChange(parseInt(value))}
+											defaultValue={field.value?.toString()}
+										>
+											<FormControl>
+												<SelectTrigger className="h-12 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+													<SelectValue placeholder="Select timing" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
+												<SelectItem value="1">1 hour</SelectItem>
+												<SelectItem value="2">2 hours</SelectItem>
+												<SelectItem value="4">4 hours</SelectItem>
+												<SelectItem value="8">8 hours</SelectItem>
+												<SelectItem value="12">12 hours</SelectItem>
+												<SelectItem value="24">1 day</SelectItem>
+												<SelectItem value="48">2 days</SelectItem>
+												<SelectItem value="72">3 days</SelectItem>
+												<SelectItem value="168">1 week</SelectItem>
+											</SelectContent>
+										</Select>
+										<FormDescription className="text-gray-600">
+											How long after the event ends should feedback emails be sent. You can configure feedback questions in the event management page after creating the event.
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 						)}
 					</div>
 				</div>

@@ -45,6 +45,21 @@ export interface ThankYouEmailData {
 	eventHighlights?: string[];
 }
 
+export interface TicketConfirmationEmailData {
+	eventTitle: string;
+	eventId: string;
+	attendeeName: string;
+	attendeeEmail: string;
+	eventDate: string;
+	eventTime: string;
+	eventLocation: string;
+	totalTickets: number;
+	tickets: Array<{
+		ticketId: string;
+		entryCode: string;
+	}>;
+}
+
 /**
  * Send a generic email using Resend
  */
@@ -731,6 +746,172 @@ export async function sendBulkThankYouEmails(
 	}
 
 	return results;
+}
+
+/**
+ * Generate ticket confirmation email template
+ */
+function generateTicketConfirmationEmailTemplate(
+	data: TicketConfirmationEmailData
+): string {
+	const ticketsHtml = data.tickets
+		.map(
+			(ticket, index) => `
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4f46e5;">
+      <h3 style="margin: 0 0 10px 0; color: #1f2937; font-size: 16px;">Ticket ${
+				index + 1
+			}</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #6b7280; font-size: 14px;">Ticket ID:</span>
+          <span style="font-family: 'Courier New', monospace; font-weight: 600; color: #1f2937; font-size: 14px;">${
+						ticket.ticketId
+					}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; background-color: #fff; padding: 12px; border-radius: 6px; border: 2px dashed #4f46e5;">
+          <span style="color: #4f46e5; font-weight: 600; font-size: 14px;">Entry Code:</span>
+          <span style="font-family: 'Courier New', monospace; font-weight: 700; color: #4f46e5; font-size: 24px; letter-spacing: 4px;">${
+						ticket.entryCode
+					}</span>
+        </div>
+      </div>
+    </div>
+  `
+		)
+		.join('');
+
+	return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Your Ticket Confirmation</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 40px 30px; text-align: center;">
+          <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">🎉 Ticket Confirmed!</h1>
+          <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">You're all set for ${
+						data.eventTitle
+					}</p>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 40px 30px;">
+          <p style="margin: 0 0 20px 0; color: #1f2937; font-size: 16px; line-height: 1.6;">
+            Dear ${data.attendeeName},
+          </p>
+
+          <p style="margin: 0 0 30px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
+            Great news! Your ticket${
+							data.totalTickets > 1 ? 's have' : ' has'
+						} been confirmed for <strong>${
+		data.eventTitle
+	}</strong>. We're excited to see you there!
+          </p>
+
+          <!-- Event Details -->
+          <div style="background-color: #f9fafb; padding: 25px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #e5e7eb;">
+            <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 20px; font-weight: 600;">Event Details</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; align-items: start;">
+                <span style="color: #6b7280; font-size: 14px; min-width: 100px;">📅 Date:</span>
+                <span style="color: #1f2937; font-weight: 500; font-size: 14px;">${
+									data.eventDate
+								}</span>
+              </div>
+              <div style="display: flex; align-items: start;">
+                <span style="color: #6b7280; font-size: 14px; min-width: 100px;">🕐 Time:</span>
+                <span style="color: #1f2937; font-weight: 500; font-size: 14px;">${
+									data.eventTime
+								}</span>
+              </div>
+              <div style="display: flex; align-items: start;">
+                <span style="color: #6b7280; font-size: 14px; min-width: 100px;">📍 Location:</span>
+                <span style="color: #1f2937; font-weight: 500; font-size: 14px;">${
+									data.eventLocation
+								}</span>
+              </div>
+              <div style="display: flex; align-items: start;">
+                <span style="color: #6b7280; font-size: 14px; min-width: 100px;">🎫 Tickets:</span>
+                <span style="color: #1f2937; font-weight: 500; font-size: 14px;">${
+									data.totalTickets
+								}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tickets -->
+          <div style="margin-bottom: 30px;">
+            <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 20px; font-weight: 600;">Your Ticket${
+							data.totalTickets > 1 ? 's' : ''
+						}</h2>
+            ${ticketsHtml}
+          </div>
+
+          <!-- Important Information -->
+          <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 30px;">
+            <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px; font-weight: 600;">⚠️ Important Information</h3>
+            <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 14px; line-height: 1.8;">
+              <li>Please save this email or take a screenshot of your entry code${
+								data.totalTickets > 1 ? 's' : ''
+							}</li>
+              <li>You'll need to provide your entry code at the event entrance for verification</li>
+              <li>Each entry code can only be used once</li>
+              <li>Arrive early to avoid queues at the entrance</li>
+            </ul>
+          </div>
+
+          <!-- View Ticket Button -->
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_SERVER_URL}/event/${
+		data.eventId
+	}/ticket"
+               style="display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);">
+              View My Ticket${data.totalTickets > 1 ? 's' : ''}
+            </a>
+          </div>
+
+          <p style="margin: 30px 0 0 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+            If you have any questions or need assistance, please don't hesitate to contact the event organizer.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 13px;">
+            This email was sent because you purchased a ticket for ${
+							data.eventTitle
+						}.
+          </p>
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+            © ${new Date().getFullYear()} Eventtts Platform. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Send ticket confirmation email to an attendee
+ */
+export async function sendTicketConfirmationEmail(
+	data: TicketConfirmationEmailData
+) {
+	const emailHtml = generateTicketConfirmationEmailTemplate(data);
+
+	const emailData: EmailData = {
+		to: [data.attendeeEmail],
+		subject: `🎉 Your Ticket for ${data.eventTitle} - Entry Code Inside`,
+		html: emailHtml,
+		from: 'Eventtts Platform <noreply@resend.dev>',
+	};
+
+	return await sendEmail(emailData);
 }
 
 export default resend;

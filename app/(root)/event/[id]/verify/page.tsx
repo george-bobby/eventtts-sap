@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
-import QRCodeManagement from '@/components/shared/QRCodeManagement';
+import TicketVerification from '@/components/shared/TicketVerification';
 
-interface EventQRCodePageProps {
+interface VerifyPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EventQRCodePage({ params }: EventQRCodePageProps) {
+export default async function VerifyPage({ params }: VerifyPageProps) {
   const { id } = await params;
   const { userId: clerkId } = await auth();
 
@@ -37,36 +37,36 @@ export default async function EventQRCodePage({ params }: EventQRCodePageProps) 
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <section className="bg-gradient-to-r from-slate-500 to-gray-600 py-8">
+      <section className="bg-gradient-to-r from-indigo-500 to-purple-600 py-8">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-4">
-            <Button asChild variant="outline" size="sm" className="bg-white text-slate-600 hover:bg-gray-100">
+            <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">
               <Link href={`/event/${id}/manage`}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="bg-white text-slate-600 hover:bg-gray-100">
+            <Button asChild variant="outline" size="sm" className="bg-white text-indigo-600 hover:bg-gray-100">
               <Link href={`/event/${id}`}>
                 View Event Page
               </Link>
             </Button>
           </div>
-          <h1 className="text-3xl font-bold text-white">QR Code Generator</h1>
-          <p className="text-slate-100 mt-2">
-            Generate QR codes for check-in and access to {event.title}
+          <h1 className="text-3xl font-bold text-white">Ticket Verification</h1>
+          <p className="text-indigo-100 mt-2">
+            Verify attendee tickets for {event.title}
           </p>
         </div>
       </section>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <QRCodeManagement
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <TicketVerification
           eventId={id}
           eventTitle={event.title}
-          organizerId={user._id}
         />
       </div>
     </div>
   );
 }
+

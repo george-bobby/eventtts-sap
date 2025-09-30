@@ -13,7 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { headers } from "next/headers";
-import RaiseIssueButton from "@/components/shared/RaiseIssueButton";
+import { MessageSquare, AlertTriangle } from "lucide-react";
 
 interface Props {
 	params: Promise<{ id: string }>;
@@ -113,14 +113,40 @@ const Page = async ({ params }: Props) => {
 							</Link>
 						</Button>
 					) : isRegistered ? (
-						// Show Report Issue button for registered users
-						<RaiseIssueButton
-							event={JSON.parse(JSON.stringify(event))}
-							currentUserId={userId}
-							variant="outline"
-							size="lg"
-							className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300"
-						/>
+						// Show View Ticket and Report Issue/Submit Feedback buttons for registered users
+						<>
+							<Button asChild size="lg" className="bg-red-600 hover:bg-rose-700 text-white">
+								<Link href={`/event/${event._id}/ticket`}>
+									🎫 View My Ticket
+								</Link>
+							</Button>
+							{/* Check if event is over to show appropriate button */}
+							{(() => {
+								const now = new Date();
+								// Create a proper date object by combining endDate and endTime
+								const endDate = new Date(event.endDate);
+								const [hours, minutes] = event.endTime.split(':').map(Number);
+								endDate.setHours(hours, minutes, 0, 0);
+								const isEventOver = now > endDate;
+
+								return isEventOver ? (
+									<Button asChild size="lg" className="bg-green-600 hover:bg-green-700 text-white">
+										<Link href={`/event/${event._id}/submit/feedback`} className="flex items-center gap-2">
+											<MessageSquare className="w-4 h-4" />
+											Submit Feedback
+										</Link>
+									</Button>
+								) : (
+									<Button asChild size="lg" className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300" variant="outline">
+										<Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-2">
+											<AlertTriangle className="w-4 h-4" />
+											Report Issue
+										</Link>
+									</Button>
+								);
+							})()
+							}
+						</>
 					) : (
 						// Show registration/booking button for non-registered users
 						<LikeCartButton

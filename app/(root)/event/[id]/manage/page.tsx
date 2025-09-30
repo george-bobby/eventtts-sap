@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Flag, Bell, QrCode, Target } from 'lucide-react';
+import { ArrowLeft, Edit, Users, BarChart3, MessageSquare, UserCheck, Camera, AlertTriangle, Trash2, FileText, Award, Flag, Bell, CheckSquare, Target } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { dateConverter, timeFormatConverter } from '@/lib/utils';
@@ -58,7 +58,7 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       title: 'Feedback Management',
       description: 'View feedback responses and analytics',
       icon: MessageSquare,
-      href: `/event/${id}/feedback-management`,
+      href: `/event/${id}/feedbacks`,
       color: 'bg-indigo-500 hover:bg-indigo-600',
       iconColor: 'text-indigo-600'
     },
@@ -127,10 +127,10 @@ export default async function EventManagePage({ params }: EventManagePageProps) 
       iconColor: 'text-purple-600'
     },
     {
-      title: 'QR Code',
-      description: 'Generate QR codes for event check-in',
-      icon: QrCode,
-      href: `/event/${id}/qr-code`,
+      title: 'Verify Tickets',
+      description: 'Verify attendee tickets with entry codes',
+      icon: CheckSquare,
+      href: `/event/${id}/verify`,
       color: 'bg-slate-500 hover:bg-slate-600',
       iconColor: 'text-slate-600'
     }

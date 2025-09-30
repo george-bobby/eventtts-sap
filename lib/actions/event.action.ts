@@ -29,7 +29,7 @@ import {
 } from '../models/feedback.model';
 import { Stakeholder } from '../models/stakeholder.model';
 import { EventUpdate } from '../models/eventupdate.model';
-import { QRCode } from '../models/qrcode.model';
+// import { QRCode } from '../models/qrcode.model';
 
 // -------------------------------
 // TYPES
@@ -640,8 +640,8 @@ export async function deleteEventById(eventId: string) {
 		await EventUpdate.deleteMany({ event: eventObjectId });
 
 		// 6. Delete QR codes
-		console.log('Deleting QR codes...');
-		await QRCode.deleteMany({ event: eventObjectId });
+		// console.log('Deleting QR codes...');
+		// await QRCode.deleteMany({ event: eventObjectId });
 
 		// 7. Delete orders (tickets)
 		console.log('Deleting orders...');

@@ -14,7 +14,9 @@ import {
   Mail,
   Ticket,
   DollarSign,
-  Loader2
+  Loader2,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { IAttendee } from '@/types';
 import { getEventAttendees } from '@/lib/actions/order.action';
@@ -230,6 +232,23 @@ export default function AttendeeManagement({
                       <Badge variant={attendee.paymentStatus === 'completed' ? 'default' : 'secondary'}>
                         {attendee.totalAmount === 0 ? 'Free' : `₹${attendee.totalAmount}`}
                       </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      {attendee.totalVerified ? (
+                        <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          All Verified
+                        </Badge>
+                      ) : attendee.verifiedTickets && attendee.verifiedTickets > 0 ? (
+                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                          Partial ({attendee.verifiedTickets}/{attendee.totalTickets})
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-gray-100 text-gray-800 border-gray-200 flex items-center gap-1">
+                          <XCircle className="w-3 h-3" />
+                          Not Verified
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-xs text-gray-500">
                       {attendee.paymentStatus === 'completed' ? 'Confirmed' : 'Pending'}

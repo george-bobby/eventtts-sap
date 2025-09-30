@@ -5,10 +5,9 @@ import { dateConverter, timeFormatConverter } from "@/lib/utils";
 import Link from "next/link";
 import LikeCartButton from "./LikeCartButton";
 import DeleteEventButton from "./DeleteEventButton";
-import RaiseIssueButton from "./RaiseIssueButton";
 import { Button } from "@/components/ui/button";
 import { EventWithSubEvents } from "@/lib/actions/event.action";
-import { Settings, AlertTriangle } from "lucide-react";
+import { Settings, AlertTriangle, Ticket, MessageSquare } from "lucide-react";
 
 interface Props {
   event: EventWithSubEvents;
@@ -72,17 +71,41 @@ const EventCard = ({ event, currentUserId, page, user, likedEvent = false, isBoo
         </div>
       )}
 
-      {/* Small hover button for booked events - Report Issue */}
+      {/* Small hover buttons for booked events - View Ticket and Report Issue/Submit Feedback */}
       {isBookedEvent && currentUserId && !isOrganizer && (
         <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-          <RaiseIssueButton
-            event={event}
-            currentUserId={currentUserId}
-            variant="default"
-            size="sm"
-            className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg"
-            showText={true}
-          />
+          <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
+            <Link href={`/event/${event._id}/ticket`} className="flex items-center gap-1">
+              <Ticket className="w-3 h-3" />
+              View Ticket
+            </Link>
+          </Button>
+          {/* Check if event is over to show appropriate button */}
+          {(() => {
+            const now = new Date();
+            // Create a proper date object by combining endDate and endTime
+            const endDate = new Date(event.endDate);
+            const [hours, minutes] = event.endTime.split(':').map(Number);
+            endDate.setHours(hours, minutes, 0, 0);
+            const isEventOver = now > endDate;
+
+            return isEventOver ? (
+              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 shadow-lg">
+                <Link href={`/event/${event._id}/submit/feedback`} className="flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3" />
+                  Submit Feedback
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 shadow-lg">
+                <Link href={`/event/${event._id}/submit/issue`} className="flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Report Issue
+                </Link>
+              </Button>
+            );
+          })()
+          }
         </div>
       )}
 
