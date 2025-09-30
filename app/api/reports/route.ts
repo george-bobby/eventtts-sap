@@ -166,11 +166,11 @@ export async function POST(request: NextRequest) {
       Make the report professional, data-driven, and actionable. Include specific numbers and percentages where relevant.
     `;
 
-		const { object: reportData } = await generateObject({
+		const { object: reportData } = (await generateObject({
 			model: google('gemini-2.0-flash-exp'),
 			schema: reportSchema,
 			prompt,
-		});
+		})) as { object: z.infer<typeof reportSchema> };
 
 		// Save report to database
 		const savedReport = await Report.create({
