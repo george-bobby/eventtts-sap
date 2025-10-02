@@ -495,7 +495,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 							name="campusLocation"
 							render={({ field }: any) => (
 								<FormItem className="w-full">
-									<FormLabel className="text-gray-700 font-medium">Campus Location (for Navigation)</FormLabel>
+									<FormLabel className="text-gray-700 font-medium">Campus Location</FormLabel>
 									<FormControl>
 										<Select onValueChange={field.onChange} defaultValue={field.value}>
 											<SelectTrigger className="w-full h-12 border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 rounded-lg bg-white hover:bg-gray-50 transition-all duration-200">

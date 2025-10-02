@@ -262,7 +262,16 @@ export async function getEvents({
 					updatedAt: 1,
 					category: { $arrayElemAt: ['$categoryData', 0] },
 					organizer: {
-						$arrayElemAt: ['$organizerData', 0],
+						$let: {
+							vars: { org: { $arrayElemAt: ['$organizerData', 0] } },
+							in: {
+								_id: '$$org._id',
+								username: '$$org.username',
+								firstName: '$$org.firstName',
+								lastName: '$$org.lastName',
+								photo: '$$org.photo',
+							},
+						},
 					},
 					tags: '$tagsData',
 				},
@@ -402,6 +411,8 @@ export async function getEventById(
 							in: {
 								_id: '$$org._id',
 								username: '$$org.username',
+								firstName: '$$org.firstName',
+								lastName: '$$org.lastName',
 								photo: '$$org.photo',
 							},
 						},
