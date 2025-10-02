@@ -393,9 +393,8 @@ async function sendEventUpdateEmails(eventUpdate: any) {
 		}
 
 		// Extract unique attendee emails
-		const attendeeEmails = [
-			...new Set(orders.map((order) => order.buyer.email).filter(Boolean)),
-		];
+		const emails = orders.map((order) => order.buyer.email).filter(Boolean);
+		const attendeeEmails = Array.from(new Set(emails));
 
 		console.log(
 			`Sending event update to ${attendeeEmails.length} attendees for event: ${event.title}`

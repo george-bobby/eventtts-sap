@@ -241,7 +241,84 @@ const imageSchema = new Schema<IImage>(
 );
 
 // Keep the old schema name for backward compatibility
-const photoSchema = imageSchema;
+const photoSchema = new Schema<IPhoto>(
+	{
+		folder: {
+			type: Schema.Types.ObjectId,
+			ref: 'Folder',
+			required: true,
+		},
+		event: {
+			type: Schema.Types.ObjectId,
+			ref: 'Event',
+			required: true,
+		},
+		fileName: {
+			type: String,
+			required: true,
+		},
+		originalName: {
+			type: String,
+			required: true,
+		},
+		fileUrl: {
+			type: String,
+			required: true,
+		},
+		thumbnailUrl: {
+			type: String,
+		},
+		fileSize: {
+			type: Number,
+			required: true,
+		},
+		mimeType: {
+			type: String,
+			required: true,
+		},
+		dimensions: {
+			width: { type: Number, required: true },
+			height: { type: Number, required: true },
+		},
+		metadata: {
+			caption: { type: String, trim: true },
+			tags: [{ type: String, trim: true }],
+			location: { type: String, trim: true },
+			photographer: { type: String, trim: true },
+			camera: { type: String, trim: true },
+			dateTaken: { type: Date },
+		},
+		visibility: {
+			type: String,
+			enum: ['public', 'private', 'restricted'],
+			default: 'public',
+		},
+		downloadCount: {
+			type: Number,
+			default: 0,
+		},
+		viewCount: {
+			type: Number,
+			default: 0,
+		},
+		uploadedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+			required: true,
+		},
+		uploadedAt: {
+			type: Date,
+			default: Date.now,
+		},
+		gallery: {
+			type: Schema.Types.ObjectId,
+			ref: 'PhotoGallery',
+		},
+	},
+	{
+		timestamps: true,
+	}
+);
 
 // Folder Access Schema (renamed from Photo Access)
 const folderAccessSchema = new Schema<IFolderAccess>(
@@ -280,7 +357,44 @@ const folderAccessSchema = new Schema<IFolderAccess>(
 );
 
 // Keep the old schema name for backward compatibility
-const photoAccessSchema = folderAccessSchema;
+const photoAccessSchema = new Schema<IPhotoAccess>(
+	{
+		folder: {
+			type: Schema.Types.ObjectId,
+			ref: 'Folder',
+			required: true,
+		},
+		user: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+		},
+		email: {
+			type: String,
+			lowercase: true,
+			trim: true,
+		},
+		accessType: {
+			type: String,
+			enum: ['view', 'download', 'admin'],
+			required: true,
+		},
+		grantedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+			required: true,
+		},
+		expiresAt: {
+			type: Date,
+		},
+		gallery: {
+			type: Schema.Types.ObjectId,
+			ref: 'PhotoGallery',
+		},
+	},
+	{
+		timestamps: true,
+	}
+);
 
 // Image Comment Schema (renamed from Photo Comment)
 const imageCommentSchema = new Schema<IImageComment>(
@@ -328,7 +442,57 @@ const imageCommentSchema = new Schema<IImageComment>(
 );
 
 // Keep the old schema name for backward compatibility
-const photoCommentSchema = imageCommentSchema;
+const photoCommentSchema = new Schema<IPhotoComment>(
+	{
+		image: {
+			type: Schema.Types.ObjectId,
+			ref: 'Image',
+			required: true,
+		},
+		folder: {
+			type: Schema.Types.ObjectId,
+			ref: 'Folder',
+			required: true,
+		},
+		user: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+		},
+		guestName: {
+			type: String,
+			trim: true,
+		},
+		guestEmail: {
+			type: String,
+			lowercase: true,
+			trim: true,
+		},
+		comment: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		isApproved: {
+			type: Boolean,
+			default: false,
+		},
+		approvedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+		},
+		photo: {
+			type: Schema.Types.ObjectId,
+			ref: 'Photo',
+		},
+		gallery: {
+			type: Schema.Types.ObjectId,
+			ref: 'PhotoGallery',
+		},
+	},
+	{
+		timestamps: true,
+	}
+);
 
 // Indexes for better performance
 folderSchema.index({ event: 1, visibility: 1 });
