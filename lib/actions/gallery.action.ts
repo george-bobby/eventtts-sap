@@ -6,12 +6,30 @@ import {
 	Photo,
 	PhotoAccess,
 	PhotoComment,
+	// New folder-based models
+	Folder,
+	Image,
+	FolderAccess,
+	ImageComment,
 } from '../models/gallery.model';
 import Event from '../models/event.model';
 import User from '../models/user.model';
 import { revalidatePath } from 'next/cache';
 import { nanoid } from 'nanoid';
 
+// New folder-based interfaces
+export interface CreateFolderParams {
+	eventId: string;
+	name: string;
+	description?: string;
+	visibility: 'public' | 'private' | 'restricted';
+	accessPassword?: string;
+	allowDownload: boolean;
+	allowComments: boolean;
+	createdBy: string;
+}
+
+// Keep old interface for backward compatibility
 export interface CreatePhotoGalleryParams {
 	eventId: string;
 	name: string;
@@ -24,6 +42,29 @@ export interface CreatePhotoGalleryParams {
 	createdBy: string;
 }
 
+// New folder-based upload interface
+export interface UploadImagesParams {
+	folderId: string;
+	images: {
+		fileName: string;
+		originalName: string;
+		fileUrl: string;
+		fileSize: number;
+		mimeType: string;
+		dimensions: { width: number; height: number };
+		metadata?: {
+			caption?: string;
+			tags?: string[];
+			location?: string;
+			photographer?: string;
+			camera?: string;
+			dateTaken?: Date;
+		};
+	}[];
+	uploadedBy: string;
+}
+
+// Keep old interface for backward compatibility
 export interface UploadPhotosParams {
 	galleryId: string;
 	photos: {
@@ -63,7 +104,37 @@ export interface UpdatePhotoParams {
 }
 
 /**
- * Create a new photo gallery
+ * Create a new folder (updated gallery system)
+ */
+export async function createFolder(params: CreateFolderParams) {
+	try {
+		await connectToDatabase();
+
+		// Verify event exists
+		const event = await Event.findById(params.eventId);
+		if (!event) {
+			throw new Error('Event not found');
+		}
+
+		// Generate unique shareable link
+		const shareableLink = nanoid(12);
+
+		const folder = await Folder.create({
+			...params,
+			event: params.eventId,
+			shareableLink,
+		});
+
+		revalidatePath(`/event/${params.eventId}/gallery`);
+		return JSON.parse(JSON.stringify(folder));
+	} catch (error) {
+		console.error('Error creating folder:', error);
+		throw error;
+	}
+}
+
+/**
+ * Create a new photo gallery (backward compatibility)
  */
 export async function createPhotoGallery(params: CreatePhotoGalleryParams) {
 	try {
@@ -122,15 +193,39 @@ export async function getEventPhotoGalleries(eventId: string) {
 }
 
 /**
- * Get a specific photo gallery
+ * Get a specific photo gallery by ID or shareable link
  */
-export async function getPhotoGallery(galleryId: string, userId?: string) {
+export async function getPhotoGallery(
+	galleryIdOrLink: string,
+	userId?: string
+) {
 	try {
 		await connectToDatabase();
 
-		const gallery = await PhotoGallery.findById(galleryId)
+		// Try to find by shareable link first (for public access)
+		let gallery = await PhotoGallery.findOne({ shareableLink: galleryIdOrLink })
 			.populate('event', 'title description startDate endDate')
 			.populate('createdBy', 'firstName lastName email');
+
+		// If not found by shareable link, try by ID (for internal access)
+		if (!gallery) {
+			gallery = await PhotoGallery.findById(galleryIdOrLink)
+				.populate('event', 'title description startDate endDate')
+				.populate('createdBy', 'firstName lastName email');
+		}
+
+		// Also try the new Folder model
+		if (!gallery) {
+			gallery = await Folder.findOne({ shareableLink: galleryIdOrLink })
+				.populate('event', 'title description startDate endDate')
+				.populate('createdBy', 'firstName lastName email');
+		}
+
+		if (!gallery) {
+			gallery = await Folder.findById(galleryIdOrLink)
+				.populate('event', 'title description startDate endDate')
+				.populate('createdBy', 'firstName lastName email');
+		}
 
 		if (!gallery) {
 			throw new Error('Photo gallery not found');

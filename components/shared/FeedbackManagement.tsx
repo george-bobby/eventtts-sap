@@ -15,7 +15,8 @@ import {
   Download,
   RefreshCw,
   Settings,
-  Eye
+  Eye,
+  Mail
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { IFeedbackAnalytics } from '@/types';
@@ -94,6 +95,7 @@ export default function FeedbackManagement({
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
   const [showFormManager, setShowFormManager] = useState(false);
+  const [sendingEmails, setSendingEmails] = useState(false);
 
   const fetchFeedbackData = async () => {
     if (!isOrganizer) return;
@@ -127,6 +129,39 @@ export default function FeedbackManagement({
   useEffect(() => {
     fetchFeedbackData();
   }, [eventId, currentPage, isOrganizer]);
+
+  const handleSendFeedbackEmails = async () => {
+    setSendingEmails(true);
+    try {
+      const response = await fetch('/api/feedback/send-emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ eventId }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: "Success",
+          description: data.message,
+        });
+      } else {
+        throw new Error(data.error || 'Failed to send feedback emails');
+      }
+    } catch (error) {
+      console.error('Error sending feedback emails:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send feedback emails",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingEmails(false);
+    }
+  };
 
   if (!isOrganizer) {
     return (
@@ -168,12 +203,21 @@ export default function FeedbackManagement({
               Refresh
             </Button>
             <Button
+              onClick={handleSendFeedbackEmails}
+              disabled={sendingEmails}
+              variant="outline"
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              {sendingEmails ? 'Sending...' : 'Send Feedback Emails'}
+            </Button>
+            <Button
               onClick={() => setShowFormManager(!showFormManager)}
               variant={showFormManager ? "secondary" : "default"}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
               <Settings className="w-4 h-4 mr-2" />
-              {showFormManager ? 'Hide' : 'Configure'} Form
+              {showFormManager ? 'View Responses' : 'Configure Form'}
             </Button>
           </div>
         </div>
@@ -222,12 +266,22 @@ export default function FeedbackManagement({
             Refresh
           </Button>
           <Button
+            onClick={handleSendFeedbackEmails}
+            disabled={sendingEmails}
+            variant="outline"
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            {sendingEmails ? 'Sending...' : 'Send Feedback Emails'}
+          </Button>
+          <Button
             onClick={() => setShowFormManager(!showFormManager)}
             variant="outline"
             size="sm"
           >
-            <Settings className="w-4 h-4 mr-2" />
-            {showFormManager ? 'Hide' : 'Edit'} Form
+            <Settings className="w-4 h-4 mr-2 text-white" />
+            {showFormManager ? 'View Responses' : 'Configure Form'}
           </Button>
         </div>
       </div>

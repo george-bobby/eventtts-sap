@@ -99,14 +99,89 @@ export async function POST(request: NextRequest) {
     `
 			: '';
 
-		// Build the task count string
-		const taskCount = isSubEvent ? '6-8' : '8-12';
+		// Build event-specific context based on event type
+		let eventSpecificTasks = '';
+		const eventTypeLower = eventType.toLowerCase();
 
-		const prompt = `You are an expert event planner. Generate a comprehensive task list for organizing a ${eventType} event.
+		if (
+			eventTypeLower.includes('hackathon') ||
+			eventTypeLower.includes('competition')
+		) {
+			eventSpecificTasks = `
+Focus on technical infrastructure and competition management:
+- Internet connectivity and backup solutions
+- Power outlets and extension cords for participants
+- Technical support team setup
+- Judging criteria and evaluation systems
+- Mentorship coordination
+- Security and access control
+- Workspace organization
+- Presentation equipment setup`;
+		} else if (
+			eventTypeLower.includes('seminar') ||
+			eventTypeLower.includes('workshop') ||
+			eventTypeLower.includes('conference')
+		) {
+			eventSpecificTasks = `
+Focus on learning environment and speaker support:
+- Water bottles and refreshments for speakers
+- Audio/visual equipment testing
+- Seating arrangement optimization
+- Speaker liaison and green room setup
+- Material distribution planning
+- Note-taking facilities
+- Break time coordination
+- Networking space preparation`;
+		} else if (
+			eventTypeLower.includes('cultural') ||
+			eventTypeLower.includes('festival') ||
+			eventTypeLower.includes('celebration')
+		) {
+			eventSpecificTasks = `
+Focus on entertainment and cultural elements:
+- Stage and performance area setup
+- Decoration and ambiance creation
+- Traditional elements coordination
+- Entertainment schedule management
+- Cultural sensitivity considerations
+- Photography and videography setup
+- Crowd management and safety
+- Food and beverage coordination`;
+		} else if (
+			eventTypeLower.includes('sports') ||
+			eventTypeLower.includes('athletic') ||
+			eventTypeLower.includes('tournament')
+		) {
+			eventSpecificTasks = `
+Focus on athletic facilities and safety:
+- Equipment and gear preparation
+- Safety measures and first aid
+- Scoring and timing systems
+- Referee and official coordination
+- Participant registration and verification
+- Venue preparation and marking
+- Awards and recognition ceremony
+- Weather contingency planning`;
+		} else {
+			eventSpecificTasks = `
+Focus on general event management:
+- Venue setup and logistics
+- Registration and check-in process
+- Technology and equipment needs
+- Catering and refreshment planning
+- Safety and emergency procedures`;
+		}
+
+		// Reduce task counts significantly
+		const taskCount = isSubEvent ? '3-4' : '4-5';
+		const subtaskCount = isSubEvent ? '8-10' : '12-15';
+
+		const prompt = `You are an expert event planner. Generate a focused task list for organizing a ${eventType} event.
 
     ${eventTitle ? `Event Title: ${eventTitle}` : ''}
     ${eventDescription ? `Event Description: ${eventDescription}` : ''}
     ${eventContext}
+    ${eventSpecificTasks}
 
     ${
 			isSubEvent
@@ -114,15 +189,11 @@ export async function POST(request: NextRequest) {
 				: 'This is a standalone main event.'
 		}
 
-    Create tasks that cover all aspects of event planning including:
-    - Initial planning and conceptualization
-    - Venue/platform setup and logistics
-    - Marketing and promotion
-    - Registration and ticketing
-    - Content and program development
-    - Vendor and stakeholder coordination
-    - Day-of-event execution
-    - Post-event activities
+    Create ONLY the most essential tasks that cover critical aspects:
+    - Initial planning and setup
+    - Logistics and coordination  
+    - Execution and management
+    - Post-event activities (if applicable)
 
     Distribute tasks across these columns:
     - "planning" (initial setup and preparation)
@@ -135,9 +206,13 @@ export async function POST(request: NextRequest) {
     - "medium" for important but flexible items
     - "low" for nice-to-have items
 
-    Generate ${taskCount} tasks total, distributed across the phases appropriately.
-    Each task should have 2-4 relevant subtasks.
-    Estimated duration should be realistic (e.g., "2 hours", "1 day", "3 days", "1 week").
+    IMPORTANT CONSTRAINTS:
+    - Generate EXACTLY ${taskCount} tasks total
+    - Each task should have 2-4 relevant subtasks
+    - Total subtasks across all tasks should not exceed ${subtaskCount}
+    - Focus on event-specific needs based on the event type
+    - Keep tasks actionable and specific
+    - Estimated duration should be realistic (e.g., "2 hours", "1 day", "3 days", "1 week")
 
     Make tasks specific and actionable, considering the event type and details provided.`;
 

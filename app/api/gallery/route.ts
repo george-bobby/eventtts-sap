@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 import {
 	createPhotoGallery,
+	createFolder,
 	getEventPhotoGalleries,
 	uploadPhotos,
 } from '@/lib/actions/gallery.action';
@@ -83,7 +84,8 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const gallery = await createPhotoGallery({
+		// Use new folder creation function (which is essentially the same as gallery but with updated terminology)
+		const folder = await createFolder({
 			eventId,
 			name,
 			description,
@@ -91,13 +93,12 @@ export async function POST(request: NextRequest) {
 			accessPassword,
 			allowDownload: allowDownload ?? true,
 			allowComments: allowComments ?? true,
-			categories: categories || [],
 			createdBy: mongoUser._id, // Use MongoDB user ID instead of Clerk ID
 		});
 
 		return NextResponse.json({
 			success: true,
-			data: gallery,
+			data: folder,
 		});
 	} catch (error) {
 		console.error('Error creating photo gallery:', error);

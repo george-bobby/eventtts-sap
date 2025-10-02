@@ -114,8 +114,10 @@ export async function updateTask(
 		content: string;
 		column: string;
 		priority: string;
+		estimatedDuration: string;
 		completed: boolean;
 		subtasks: ISubtask[];
+		updateSubtask: { subtaskId: string; content: string };
 	}>
 ) {
 	try {
@@ -126,13 +128,38 @@ export async function updateTask(
 			throw new Error('User not found');
 		}
 
+		// Handle subtask update separately
+		if (updates.updateSubtask) {
+			const task = await Task.findOneAndUpdate(
+				{
+					'id': taskId,
+					'event': eventId,
+					'organizer': mongoUser._id,
+					'subtasks.id': updates.updateSubtask.subtaskId,
+				},
+				{
+					$set: { 'subtasks.$.content': updates.updateSubtask.content },
+				},
+				{ new: true }
+			);
+
+			if (!task) {
+				throw new Error('Task or subtask not found');
+			}
+
+			return { success: true, task };
+		}
+
+		// Remove updateSubtask from updates before regular update
+		const { updateSubtask, ...regularUpdates } = updates;
+
 		const task = await Task.findOneAndUpdate(
 			{
 				id: taskId,
 				event: eventId,
 				organizer: mongoUser._id,
 			},
-			updates,
+			regularUpdates,
 			{ new: true }
 		);
 
@@ -215,6 +242,128 @@ export async function deleteEventTasks(eventId: string, userId: string) {
 		return {
 			success: false,
 			error: error instanceof Error ? error.message : 'Unknown error',
+		};
+	}
+}
+
+// Delete a single task
+export async function deleteTask(
+	eventId: string,
+	userId: string,
+	taskId: string
+) {
+	try {
+		await connectToDatabase();
+
+		const mongoUser = await getUserByClerkId(userId);
+		if (!mongoUser) {
+			throw new Error('User not found');
+		}
+
+		const task = await Task.findOneAndDelete({
+			id: taskId,
+			event: eventId,
+			organizer: mongoUser._id,
+		});
+
+		if (!task) {
+			throw new Error('Task not found');
+		}
+
+		return { success: true };
+	} catch (error) {
+		console.error('Error deleting task:', error);
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : 'Unknown error',
+		};
+	}
+}
+
+// Delete a subtask
+export async function deleteSubtask(
+	eventId: string,
+	userId: string,
+	taskId: string,
+	subtaskId: string
+) {
+	try {
+		await connectToDatabase();
+
+		const mongoUser = await getUserByClerkId(userId);
+		if (!mongoUser) {
+			throw new Error('User not found');
+		}
+
+		// Debug logging
+		console.log('Deleting subtask:', {
+			eventId,
+			userId,
+			taskId,
+			subtaskId,
+			mongoUserId: mongoUser._id,
+		});
+
+		// First, find the task to see if it exists
+		const existingTask = await Task.findOne({
+			id: taskId,
+			event: eventId,
+			organizer: mongoUser._id,
+		});
+
+		console.log('Existing task found:', existingTask ? 'Yes' : 'No');
+		if (existingTask) {
+			console.log(
+				'Task subtasks:',
+				existingTask.subtasks.map((s: any) => s.id)
+			);
+		}
+
+		const task = await Task.findOneAndUpdate(
+			{
+				id: taskId,
+				event: eventId,
+				organizer: mongoUser._id,
+			},
+			{
+				$pull: { subtasks: { id: subtaskId } },
+			},
+			{ new: true }
+		);
+
+		if (!task) {
+			console.error('Task not found for deletion:', {
+				taskId,
+				eventId,
+				organizerId: mongoUser._id,
+			});
+			throw new Error(
+				'Task not found or you do not have permission to delete this subtask'
+			);
+		}
+
+		console.log('Subtask deleted successfully:', {
+			taskId,
+			subtaskId,
+			remainingSubtasks: task.subtasks.length,
+		});
+
+		return { success: true, task };
+	} catch (error) {
+		console.error('Error deleting subtask:', {
+			error: error instanceof Error ? error.message : error,
+			stack: error instanceof Error ? error.stack : undefined,
+			taskId,
+			subtaskId,
+			eventId,
+			userId,
+		});
+		return {
+			success: false,
+			error:
+				error instanceof Error
+					? error.message
+					: 'Unknown error occurred while deleting subtask',
 		};
 	}
 }

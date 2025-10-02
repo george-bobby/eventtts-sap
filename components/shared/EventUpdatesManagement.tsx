@@ -11,22 +11,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Send, Edit, Trash2, Eye, Calendar, Users, Mail, MessageSquare, RefreshCw, BarChart3, CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Plus, Send, Edit, Trash2, Eye, Calendar, Users, Mail, MessageSquare, RefreshCw, BarChart3 } from 'lucide-react';
 
 interface EventUpdate {
   _id: string;
   title: string;
   content: string;
   type: 'announcement' | 'schedule_change' | 'location_change' | 'cancellation' | 'reminder' | 'general';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'draft' | 'published' | 'scheduled' | 'sent';
+  status: 'draft' | 'published' | 'sent';
   publishedAt?: string;
-  scheduledFor?: string;
   createdBy: {
     firstName: string;
     lastName: string;
@@ -37,12 +31,7 @@ interface EventUpdate {
     specificUsers?: string[];
     userRoles?: string[];
   };
-  deliveryMethods: {
-    email: boolean;
-    sms: boolean;
-    inApp: boolean;
-    push: boolean;
-  };
+  sendEmail: boolean;
   emailStats?: {
     sent: number;
     delivered: number;
@@ -201,7 +190,6 @@ export default function EventUpdatesManagement({
 
   const draftUpdates = updates.filter(u => u.status === 'draft');
   const publishedUpdates = updates.filter(u => u.status === 'published');
-  const scheduledUpdates = updates.filter(u => u.status === 'scheduled');
   const sentUpdates = updates.filter(u => u.status === 'sent');
 
   if (loading) {
@@ -289,26 +277,15 @@ export default function EventUpdatesManagement({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Scheduled</p>
-                <p className="text-2xl font-bold text-blue-600">{scheduledUpdates.length}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
 
       {/* Updates List */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">All ({updates.length})</TabsTrigger>
           <TabsTrigger value="draft">Drafts ({draftUpdates.length})</TabsTrigger>
           <TabsTrigger value="published">Published ({publishedUpdates.length})</TabsTrigger>
-          <TabsTrigger value="scheduled">Scheduled ({scheduledUpdates.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -347,17 +324,7 @@ export default function EventUpdatesManagement({
           />
         </TabsContent>
 
-        <TabsContent value="scheduled">
-          <UpdatesList
-            updates={scheduledUpdates}
-            onPublish={publishUpdate}
-            onEdit={setSelectedUpdate}
-            onDelete={deleteUpdate}
-            getStatusColor={getStatusColor}
-            getPriorityColor={getPriorityColor}
-            getTypeIcon={getTypeIcon}
-          />
-        </TabsContent>
+
       </Tabs>
     </div>
   );
@@ -409,9 +376,6 @@ function UpdatesList({
                   <Badge className={getStatusColor(update.status)}>
                     {update.status}
                   </Badge>
-                  <Badge className={getPriorityColor(update.priority)}>
-                    {update.priority}
-                  </Badge>
                 </div>
                 <CardDescription className="line-clamp-2">
                   {update.content}
@@ -426,9 +390,6 @@ function UpdatesList({
                 <p>Created: {new Date(update.createdAt).toLocaleDateString()}</p>
                 {update.publishedAt && (
                   <p>Published: {new Date(update.publishedAt).toLocaleDateString()}</p>
-                )}
-                {update.scheduledFor && (
-                  <p>Scheduled: {new Date(update.scheduledFor).toLocaleDateString()}</p>
                 )}
               </div>
 
@@ -479,14 +440,8 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
     title: '',
     content: '',
     type: 'general',
-    priority: 'medium',
     sendToAll: true,
-    email: true,
-    inApp: true,
-    sms: false,
-    push: false,
-    scheduledFor: undefined as Date | undefined,
-    scheduledTime: '',
+    sendEmail: true,
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -506,19 +461,10 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
           title: formData.title,
           content: formData.content,
           type: formData.type,
-          priority: formData.priority,
           recipients: {
             sendToAll: formData.sendToAll,
           },
-          deliveryMethods: {
-            email: formData.email,
-            sms: formData.sms,
-            inApp: formData.inApp,
-            push: formData.push,
-          },
-          scheduledFor: formData.scheduledFor && formData.scheduledTime
-            ? new Date(`${format(formData.scheduledFor, 'yyyy-MM-dd')}T${formData.scheduledTime}`).toISOString()
-            : undefined,
+          sendEmail: formData.sendEmail,
         }),
       });
 
@@ -546,30 +492,18 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Enter update title"
-          required
-        />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Enter update title"
+            required
+          />
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="content">Content</Label>
-        <Textarea
-          id="content"
-          value={formData.content}
-          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-          placeholder="Enter update content"
-          rows={4}
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="type">Type</Label>
           <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
@@ -586,105 +520,33 @@ function CreateUpdateForm({ eventId, onSuccess }: CreateUpdateFormProps) {
             </SelectContent>
           </Select>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="priority">Priority</Label>
-          <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       <div className="space-y-2">
-        <Label>Delivery Methods</Label>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="email"
-              checked={formData.email}
-              onCheckedChange={(checked) => setFormData({ ...formData, email: checked })}
-            />
-            <Label htmlFor="email">Email</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="inApp"
-              checked={formData.inApp}
-              onCheckedChange={(checked) => setFormData({ ...formData, inApp: checked })}
-            />
-            <Label htmlFor="inApp">In-App Notification</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="sms"
-              checked={formData.sms}
-              onCheckedChange={(checked) => setFormData({ ...formData, sms: checked })}
-            />
-            <Label htmlFor="sms">SMS (Coming Soon)</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="push"
-              checked={formData.push}
-              onCheckedChange={(checked) => setFormData({ ...formData, push: checked })}
-            />
-            <Label htmlFor="push">Push Notification (Coming Soon)</Label>
-          </div>
-        </div>
+        <Label htmlFor="content">Content</Label>
+        <Textarea
+          id="content"
+          value={formData.content}
+          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+          placeholder="Enter update content"
+          rows={4}
+          required
+        />
       </div>
 
       <div className="space-y-2">
-        <Label>Schedule For (Optional)</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-2">
-            <Label htmlFor="scheduledDate">Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full pl-3 text-left font-normal",
-                    !formData.scheduledFor && "text-muted-foreground"
-                  )}
-                >
-                  {formData.scheduledFor ? (
-                    format(formData.scheduledFor, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={formData.scheduledFor}
-                  onSelect={(date) => setFormData({ ...formData, scheduledFor: date })}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="scheduledTime">Time</Label>
-            <Input
-              id="scheduledTime"
-              type="time"
-              value={formData.scheduledTime}
-              onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
-            />
-          </div>
+        <Label>Email Notification</Label>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="sendEmail"
+            checked={formData.sendEmail}
+            onCheckedChange={(checked) => setFormData({ ...formData, sendEmail: checked })}
+          />
+          <Label htmlFor="sendEmail">Send email notifications to participants</Label>
         </div>
       </div>
+
+
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onSuccess}>

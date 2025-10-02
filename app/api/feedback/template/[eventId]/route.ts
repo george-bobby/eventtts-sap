@@ -24,10 +24,17 @@ export async function GET(
 		const template = await getFeedbackTemplate(eventId);
 
 		if (!template) {
-			return NextResponse.json(
-				{ error: 'Feedback template not found for this event' },
-				{ status: 404 }
-			);
+			// Return default template structure instead of 404
+			const defaultTemplate = {
+				_id: null,
+				event: eventId,
+				customQuestions: [],
+				feedbackHours: 2,
+				isActive: true,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+			return NextResponse.json({ template: defaultTemplate });
 		}
 
 		return NextResponse.json({ template });

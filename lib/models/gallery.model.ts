@@ -1,7 +1,7 @@
 import { Schema, model, models, Document } from 'mongoose';
 
-// Interface for photo gallery
-export interface IPhotoGallery extends Document {
+// Interface for folder (renamed from photo gallery for hierarchical structure)
+export interface IFolder extends Document {
 	_id: string;
 	event: Schema.Types.ObjectId;
 	name: string;
@@ -11,7 +11,6 @@ export interface IPhotoGallery extends Document {
 	accessPassword?: string;
 	allowDownload: boolean;
 	allowComments: boolean;
-	categories: string[];
 	shareableLink: string;
 	linkExpiry?: Date;
 	viewCount: number;
@@ -21,10 +20,13 @@ export interface IPhotoGallery extends Document {
 	updatedAt: Date;
 }
 
-// Interface for individual photos
-export interface IPhoto extends Document {
+// Keep the old interface for backward compatibility during transition
+export interface IPhotoGallery extends IFolder {}
+
+// Interface for individual images (updated to use folder instead of gallery)
+export interface IImage extends Document {
 	_id: string;
-	gallery: Schema.Types.ObjectId;
+	folder: Schema.Types.ObjectId;
 	event: Schema.Types.ObjectId;
 	fileName: string;
 	originalName: string;
@@ -44,7 +46,6 @@ export interface IPhoto extends Document {
 		camera?: string;
 		dateTaken?: Date;
 	};
-	category?: string;
 	visibility: 'public' | 'private' | 'restricted';
 	downloadCount: number;
 	viewCount: number;
@@ -54,23 +55,34 @@ export interface IPhoto extends Document {
 	updatedAt: Date;
 }
 
-// Interface for photo access permissions
-export interface IPhotoAccess extends Document {
+// Keep the old interface for backward compatibility during transition
+export interface IPhoto extends IImage {
+	gallery: Schema.Types.ObjectId; // Keep for backward compatibility
+}
+
+// Interface for folder access control (updated from photo access)
+export interface IFolderAccess extends Document {
 	_id: string;
-	gallery: Schema.Types.ObjectId;
+	folder: Schema.Types.ObjectId;
 	user?: Schema.Types.ObjectId;
 	email?: string;
 	accessType: 'view' | 'download' | 'admin';
 	grantedBy: Schema.Types.ObjectId;
 	expiresAt?: Date;
 	createdAt: Date;
+	updatedAt: Date;
 }
 
-// Interface for photo comments
-export interface IPhotoComment extends Document {
+// Keep the old interface for backward compatibility during transition
+export interface IPhotoAccess extends IFolderAccess {
+	gallery: Schema.Types.ObjectId; // Keep for backward compatibility
+}
+
+// Interface for image comments (updated from photo comments)
+export interface IImageComment extends Document {
 	_id: string;
-	photo: Schema.Types.ObjectId;
-	gallery: Schema.Types.ObjectId;
+	image: Schema.Types.ObjectId;
+	folder: Schema.Types.ObjectId;
 	user?: Schema.Types.ObjectId;
 	guestName?: string;
 	guestEmail?: string;
@@ -81,8 +93,14 @@ export interface IPhotoComment extends Document {
 	updatedAt: Date;
 }
 
-// Photo Gallery Schema
-const photoGallerySchema = new Schema<IPhotoGallery>(
+// Keep the old interface for backward compatibility during transition
+export interface IPhotoComment extends IImageComment {
+	photo: Schema.Types.ObjectId; // Keep for backward compatibility
+	gallery: Schema.Types.ObjectId; // Keep for backward compatibility
+}
+
+// Folder Schema (renamed from Photo Gallery for hierarchical structure)
+const folderSchema = new Schema<IFolder>(
 	{
 		event: {
 			type: Schema.Types.ObjectId,
@@ -117,12 +135,6 @@ const photoGallerySchema = new Schema<IPhotoGallery>(
 			type: Boolean,
 			default: true,
 		},
-		categories: [
-			{
-				type: String,
-				trim: true,
-			},
-		],
 		shareableLink: {
 			type: String,
 			required: true,
@@ -149,12 +161,15 @@ const photoGallerySchema = new Schema<IPhotoGallery>(
 	}
 );
 
-// Photo Schema
-const photoSchema = new Schema<IPhoto>(
+// Keep the old schema name for backward compatibility
+const photoGallerySchema = folderSchema;
+
+// Image Schema (renamed from Photo for hierarchical structure)
+const imageSchema = new Schema<IImage>(
 	{
-		gallery: {
+		folder: {
 			type: Schema.Types.ObjectId,
-			ref: 'PhotoGallery',
+			ref: 'Folder',
 			required: true,
 		},
 		event: {
@@ -197,10 +212,6 @@ const photoSchema = new Schema<IPhoto>(
 			camera: { type: String, trim: true },
 			dateTaken: { type: Date },
 		},
-		category: {
-			type: String,
-			trim: true,
-		},
 		visibility: {
 			type: String,
 			enum: ['public', 'private', 'restricted'],
@@ -229,12 +240,15 @@ const photoSchema = new Schema<IPhoto>(
 	}
 );
 
-// Photo Access Schema
-const photoAccessSchema = new Schema<IPhotoAccess>(
+// Keep the old schema name for backward compatibility
+const photoSchema = imageSchema;
+
+// Folder Access Schema (renamed from Photo Access)
+const folderAccessSchema = new Schema<IFolderAccess>(
 	{
-		gallery: {
+		folder: {
 			type: Schema.Types.ObjectId,
-			ref: 'PhotoGallery',
+			ref: 'Folder',
 			required: true,
 		},
 		user: {
@@ -265,17 +279,20 @@ const photoAccessSchema = new Schema<IPhotoAccess>(
 	}
 );
 
-// Photo Comment Schema
-const photoCommentSchema = new Schema<IPhotoComment>(
+// Keep the old schema name for backward compatibility
+const photoAccessSchema = folderAccessSchema;
+
+// Image Comment Schema (renamed from Photo Comment)
+const imageCommentSchema = new Schema<IImageComment>(
 	{
-		photo: {
+		image: {
 			type: Schema.Types.ObjectId,
-			ref: 'Photo',
+			ref: 'Image',
 			required: true,
 		},
-		gallery: {
+		folder: {
 			type: Schema.Types.ObjectId,
-			ref: 'PhotoGallery',
+			ref: 'Folder',
 			required: true,
 		},
 		user: {
@@ -310,17 +327,33 @@ const photoCommentSchema = new Schema<IPhotoComment>(
 	}
 );
 
-// Indexes for better performance
-photoGallerySchema.index({ event: 1, visibility: 1 });
-photoGallerySchema.index({ shareableLink: 1 });
-photoSchema.index({ gallery: 1, category: 1 });
-photoSchema.index({ event: 1, visibility: 1 });
-photoSchema.index({ 'metadata.tags': 1 });
-photoAccessSchema.index({ gallery: 1, user: 1 });
-photoAccessSchema.index({ gallery: 1, email: 1 });
-photoCommentSchema.index({ photo: 1, isApproved: 1 });
+// Keep the old schema name for backward compatibility
+const photoCommentSchema = imageCommentSchema;
 
-// Models
+// Indexes for better performance
+folderSchema.index({ event: 1, visibility: 1 });
+folderSchema.index({ shareableLink: 1 });
+imageSchema.index({ folder: 1 });
+imageSchema.index({ event: 1, visibility: 1 });
+imageSchema.index({ 'metadata.tags': 1 });
+folderAccessSchema.index({ folder: 1, user: 1 });
+folderAccessSchema.index({ folder: 1, email: 1 });
+imageCommentSchema.index({ image: 1, isApproved: 1 });
+
+// Note: Old schemas (photoGallerySchema, photoSchema, etc.) are just references to the same schema objects above,
+// so they don't need separate index declarations to avoid duplicates
+
+// New Models with updated names
+export const Folder = models.Folder || model<IFolder>('Folder', folderSchema);
+export const Image = models.Image || model<IImage>('Image', imageSchema);
+export const FolderAccess =
+	models.FolderAccess ||
+	model<IFolderAccess>('FolderAccess', folderAccessSchema);
+export const ImageComment =
+	models.ImageComment ||
+	model<IImageComment>('ImageComment', imageCommentSchema);
+
+// Keep old models for backward compatibility during transition
 export const PhotoGallery =
 	models.PhotoGallery ||
 	model<IPhotoGallery>('PhotoGallery', photoGallerySchema);
@@ -331,4 +364,15 @@ export const PhotoComment =
 	models.PhotoComment ||
 	model<IPhotoComment>('PhotoComment', photoCommentSchema);
 
-export default { PhotoGallery, Photo, PhotoAccess, PhotoComment };
+export default {
+	// New models
+	Folder,
+	Image,
+	FolderAccess,
+	ImageComment,
+	// Old models for compatibility
+	PhotoGallery,
+	Photo,
+	PhotoAccess,
+	PhotoComment,
+};

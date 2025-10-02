@@ -31,7 +31,6 @@ export interface IEvent extends Document {
 	status?: 'draft' | 'published' | 'cancelled';
 	// Feedback system fields
 	feedbackEnabled?: boolean; // Whether feedback is enabled for this event
-	feedbackHours?: number; // Hours after event ends to send feedback email
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -72,7 +71,6 @@ const eventSchema = new Schema<IEvent>(
 		},
 		// Feedback system fields
 		feedbackEnabled: { type: Boolean, default: true },
-		feedbackHours: { type: Number, default: 2 }, // Default 2 hours after event
 	},
 	{ timestamps: true }
 );

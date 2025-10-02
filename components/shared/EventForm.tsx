@@ -89,7 +89,6 @@ const formSchema = z.object({
 	subEvents: z.array(subEventSchema).optional(),
 	// Feedback fields
 	feedbackEnabled: z.boolean().optional(),
-	feedbackHours: z.number().min(1).max(168).optional(), // 1 hour to 1 week
 }).refine((data) => {
 	// If event is physical (not online), location is required
 	if (!data.isOnline && (!data.location || data.location.trim() === '')) {
@@ -177,7 +176,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 				url: event.url || "",
 				subEvents: [],
 				feedbackEnabled: (event as any).feedbackEnabled ?? true,
-				feedbackHours: (event as any).feedbackHours || 2,
 			};
 		}
 		return {
@@ -201,7 +199,6 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 			url: "",
 			subEvents: [],
 			feedbackEnabled: true,
-			feedbackHours: 2,
 		};
 	};
 
@@ -735,42 +732,7 @@ const EventForm = ({ userId, type = "create", event, eventId }: Props) => {
 							)}
 						/>
 
-						{/* Feedback Hours */}
-						{form.watch("feedbackEnabled") && (
-							<FormField
-								control={form.control}
-								name="feedbackHours"
-								render={({ field }: { field: ControllerRenderProps<EventFormValues, "feedbackHours"> }) => (
-									<FormItem className="w-full max-w-sm">
-										<FormLabel className="text-base font-medium text-gray-900">
-											Send feedback email after
-										</FormLabel>
-										<Select
-											onValueChange={(value) => field.onChange(parseInt(value))}
-											defaultValue={field.value?.toString()}
-										>
-											<FormControl>
-												<SelectTrigger className="h-12 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-													<SelectValue placeholder="Select timing" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectItem value="1">1 hour</SelectItem>
-												<SelectItem value="2">2 hours</SelectItem>
-												<SelectItem value="4">4 hours</SelectItem>
-												<SelectItem value="8">8 hours</SelectItem>
-												<SelectItem value="12">12 hours</SelectItem>
-												<SelectItem value="24">1 day</SelectItem>
-												<SelectItem value="48">2 days</SelectItem>
-												<SelectItem value="72">3 days</SelectItem>
-												<SelectItem value="168">1 week</SelectItem>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						)}
+
 					</div>
 				</div>
 

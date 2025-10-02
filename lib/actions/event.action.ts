@@ -9,10 +9,7 @@ import User from '../models/user.model';
 import Order from '../models/order.model';
 import { Types, Document, FilterQuery } from 'mongoose';
 import { getEventStatistics } from './order.action';
-import {
-	createFeedbackTemplate,
-	scheduleFeedbackEmails,
-} from './feedback.action';
+import { createFeedbackTemplate } from './feedback.action';
 
 // Import related models for cleanup
 import {
@@ -110,11 +107,7 @@ export async function createEvent(eventData: any) {
 				await createFeedbackTemplate({
 					eventId: mainEvent._id.toString(),
 					customQuestions: customQuestions || [],
-					feedbackHours: mainEventData.feedbackHours || 2,
 				});
-
-				// Schedule feedback emails
-				await scheduleFeedbackEmails(mainEvent._id.toString());
 			} catch (feedbackError) {
 				console.error('Error setting up feedback for event:', feedbackError);
 				// Don't fail the entire event creation if feedback setup fails

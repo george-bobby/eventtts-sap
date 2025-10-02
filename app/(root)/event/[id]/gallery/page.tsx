@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getEventById } from '@/lib/actions/event.action';
 import { getUserByClerkId } from '@/lib/actions/user.action';
 import { getEventPhotoGalleries } from '@/lib/actions/gallery.action';
-import PhotoGalleryManagement from '@/components/shared/PhotoGalleryManagement';
+import FolderGalleryManagement from '@/components/shared/FolderGalleryManagement';
 
 interface GalleryPageProps {
   params: Promise<{ id: string }>;
@@ -56,18 +56,18 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
                 </Link>
               </Button>
             </div>
-            <h1 className="text-3xl font-bold text-white">Photo Gallery Management</h1>
+            <h1 className="text-3xl font-bold text-white">Image Folder Management</h1>
             <p className="text-purple-100 mt-2">
-              Create and manage photo galleries for {event.title}
+              Create and manage image folders for {event.title}
             </p>
           </div>
         </section>
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <PhotoGalleryManagement
+          <FolderGalleryManagement
             eventId={id}
-            galleries={galleries}
+            folders={galleries}
             eventTitle={event.title}
             organizerId={user._id}
           />

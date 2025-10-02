@@ -6,6 +6,7 @@ import Event from '../models/event.model';
 import User from '../models/user.model';
 import Order from '../models/order.model';
 import { revalidatePath } from 'next/cache';
+import { sendEmail } from '../email/resend';
 
 export interface CreateEventUpdateParams {
 	eventId: string;
@@ -25,12 +26,7 @@ export interface CreateEventUpdateParams {
 		specificUsers?: string[];
 		userRoles?: string[];
 	};
-	deliveryMethods?: {
-		email?: boolean;
-		sms?: boolean;
-		inApp?: boolean;
-		push?: boolean;
-	};
+	sendEmail?: boolean;
 	scheduledFor?: Date;
 	attachments?: string[];
 	metadata?: {
@@ -93,12 +89,7 @@ export async function createEventUpdate(params: CreateEventUpdateParams) {
 				specificUsers: params.recipients?.specificUsers || [],
 				userRoles: params.recipients?.userRoles || [],
 			},
-			deliveryMethods: {
-				email: params.deliveryMethods?.email ?? true,
-				sms: params.deliveryMethods?.sms ?? false,
-				inApp: params.deliveryMethods?.inApp ?? true,
-				push: params.deliveryMethods?.push ?? false,
-			},
+			sendEmail: params.sendEmail ?? true,
 			scheduledFor: params.scheduledFor,
 			attachments: params.attachments || [],
 			metadata: {
@@ -255,8 +246,10 @@ export async function publishEventUpdate(updateId: string, userId: string) {
 			{ new: true }
 		);
 
-		// TODO: Send notifications based on delivery methods
-		// This would integrate with email service, SMS service, etc.
+		// Send email notifications if enabled
+		if (publishedUpdate && publishedUpdate.sendEmail) {
+			await sendEventUpdateEmails(publishedUpdate);
+		}
 
 		revalidatePath(`/event/${update.event._id}/notifications`);
 		return JSON.parse(JSON.stringify(publishedUpdate));
@@ -369,5 +362,152 @@ export async function getEventUpdateStats(eventId: string) {
 	} catch (error) {
 		console.error('Error getting event update stats:', error);
 		throw error;
+	}
+}
+
+/**
+ * Send email notifications for an event update
+ */
+async function sendEventUpdateEmails(eventUpdate: any) {
+	try {
+		// Get the event details
+		const event = await Event.findById(eventUpdate.event).populate(
+			'organizer',
+			'firstName lastName email'
+		);
+
+		if (!event) {
+			console.error('Event not found for update:', eventUpdate._id);
+			return;
+		}
+
+		// Get all attendees (people who have orders for this event)
+		const orders = await Order.find({
+			event: eventUpdate.event,
+			status: 'completed', // Only send to confirmed attendees
+		}).populate('buyer', 'firstName lastName email');
+
+		if (!orders || orders.length === 0) {
+			console.log('No attendees found for event:', event.title);
+			return;
+		}
+
+		// Extract unique attendee emails
+		const attendeeEmails = [
+			...new Set(orders.map((order) => order.buyer.email).filter(Boolean)),
+		];
+
+		console.log(
+			`Sending event update to ${attendeeEmails.length} attendees for event: ${event.title}`
+		);
+
+		// Create email content
+		const emailSubject = `Update: ${event.title} - ${eventUpdate.title}`;
+		const emailHtml = `
+			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+				<h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
+					Event Update: ${event.title}
+				</h2>
+
+				<div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+					<h3 style="color: #007bff; margin-top: 0;">${eventUpdate.title}</h3>
+					<p style="color: #666; margin: 0;">
+						<strong>Update Type:</strong> ${eventUpdate.type
+							.replace('_', ' ')
+							.toUpperCase()}
+					</p>
+				</div>
+
+				<div style="margin: 20px 0;">
+					<h4 style="color: #333;">Message:</h4>
+					<div style="background-color: #fff; padding: 15px; border-left: 4px solid #007bff; margin: 10px 0;">
+						${eventUpdate.content.replace(/\n/g, '<br>')}
+					</div>
+				</div>
+
+				<div style="margin: 30px 0; padding: 15px; background-color: #e9ecef; border-radius: 5px;">
+					<h4 style="color: #333; margin-top: 0;">Event Details:</h4>
+					<p><strong>Event:</strong> ${event.title}</p>
+					<p><strong>Date:</strong> ${new Date(event.startDate).toLocaleDateString(
+						'en-US',
+						{
+							weekday: 'long',
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric',
+						}
+					)}</p>
+					<p><strong>Time:</strong> ${new Date(event.startDate).toLocaleTimeString(
+						'en-US',
+						{
+							hour: '2-digit',
+							minute: '2-digit',
+						}
+					)}</p>
+					${event.location ? `<p><strong>Location:</strong> ${event.location}</p>` : ''}
+				</div>
+
+				<div style="margin: 30px 0; text-align: center;">
+					<p style="color: #666; font-size: 14px;">
+						This update was sent by ${event.organizer.firstName} ${
+			event.organizer.lastName
+		}<br>
+						Published on ${new Date(eventUpdate.publishedAt).toLocaleDateString('en-US')}
+					</p>
+				</div>
+
+				<div style="margin: 20px 0; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;">
+					<p style="margin: 0; color: #856404; font-size: 14px;">
+						<strong>Note:</strong> This is an automated message. Please do not reply to this email.
+						If you have questions, contact the event organizer directly.
+					</p>
+				</div>
+			</div>
+		`;
+
+		// Send emails to all attendees
+		const emailPromises = attendeeEmails.map((email) =>
+			sendEmail({
+				to: [email],
+				subject: emailSubject,
+				html: emailHtml,
+				from: 'SAP Hackathon Events <noreply@saphackathon.com>',
+			}).catch((error) => {
+				console.error(`Failed to send email to ${email}:`, error);
+				return { success: false, email, error };
+			})
+		);
+
+		const results = await Promise.allSettled(emailPromises);
+
+		// Count successful sends
+		const successful = results.filter(
+			(result) =>
+				result.status === 'fulfilled' && result.value?.success !== false
+		).length;
+
+		const failed = results.length - successful;
+
+		// Update email stats
+		await EventUpdate.findByIdAndUpdate(eventUpdate._id, {
+			$set: {
+				'emailStats.sent': successful,
+				'emailStats.failed': failed,
+				'emailStats.delivered': successful, // Assume delivered if sent successfully
+			},
+		});
+
+		console.log(
+			`Event update emails sent: ${successful} successful, ${failed} failed`
+		);
+	} catch (error) {
+		console.error('Error sending event update emails:', error);
+
+		// Update failed stats
+		await EventUpdate.findByIdAndUpdate(eventUpdate._id, {
+			$inc: {
+				'emailStats.failed': 1,
+			},
+		}).catch(console.error);
 	}
 }

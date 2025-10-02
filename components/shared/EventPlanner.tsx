@@ -5,7 +5,10 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Clock, AlertCircle, RefreshCw, Trash2, CheckCircle2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Loader2, Clock, AlertCircle, Edit2, Trash2, Plus, Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Define types
@@ -49,8 +52,12 @@ const SubtaskItem: React.FC<{
   taskId: string;
   index: number;
   onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
-  onToggleSubtask: (taskId: string, subtaskId: string) => void;
-}> = ({ subtask, taskId, index, onMoveSubtask, onToggleSubtask }) => {
+  onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
+  onDeleteSubtask: (taskId: string, subtaskId: string) => void;
+}> = ({ subtask, taskId, index, onMoveSubtask, onEditSubtask, onDeleteSubtask }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(subtask.content);
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'subtask',
     item: { id: subtask.id, taskId, index },
@@ -59,28 +66,72 @@ const SubtaskItem: React.FC<{
     }),
   }));
 
+  const handleSaveEdit = () => {
+    if (editContent.trim() && editContent !== subtask.content) {
+      onEditSubtask(taskId, subtask.id, editContent.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(subtask.content);
+    setIsEditing(false);
+  };
+
   return (
     <div
       ref={drag as any}
-      className={`p-3 ml-4 mb-2 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg cursor-move hover:shadow-sm transition-all duration-150 ${isDragging ? 'opacity-50 scale-95' : 'hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200'
+      className={`p-3 ml-4 mb-2 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg transition-all duration-150 group ${isDragging ? 'opacity-50 scale-95' : 'hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200'
         }`}
     >
       <div className="flex items-center gap-3">
-        <div className="relative">
-          <input
-            type="checkbox"
-            checked={subtask.completed}
-            onChange={() => onToggleSubtask(taskId, subtask.id)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
-          />
-          {subtask.completed && (
-            <CheckCircle2 className="absolute -top-0.5 -left-0.5 h-5 w-5 text-blue-600 pointer-events-none" />
+        <div className="flex-1">
+          {isEditing ? (
+            <div className="flex gap-2">
+              <Input
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEdit();
+                  if (e.key === 'Escape') handleCancelEdit();
+                }}
+                autoFocus
+              />
+              <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
+                <Save className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <span className="text-sm font-medium text-gray-700">
+              {subtask.content}
+            </span>
           )}
         </div>
-        <span className={`text-sm font-medium transition-all ${subtask.completed ? 'line-through text-gray-500' : 'text-gray-700'
-          }`}>
-          {subtask.content}
-        </span>
+
+        {!isEditing && (
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsEditing(true)}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+            >
+              <Edit2 className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onDeleteSubtask(taskId, subtask.id)}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -91,8 +142,9 @@ const SubtaskList: React.FC<{
   taskId: string;
   subtasks: Subtask[];
   onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
-  onToggleSubtask: (taskId: string, subtaskId: string) => void;
-}> = ({ taskId, subtasks, onMoveSubtask, onToggleSubtask }) => {
+  onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
+  onDeleteSubtask: (taskId: string, subtaskId: string) => void;
+}> = ({ taskId, subtasks, onMoveSubtask, onEditSubtask, onDeleteSubtask }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'subtask',
     drop: (item: { id: string; taskId: string; index: number }) => {
@@ -112,7 +164,8 @@ const SubtaskList: React.FC<{
           taskId={taskId}
           index={idx}
           onMoveSubtask={onMoveSubtask}
-          onToggleSubtask={onToggleSubtask}
+          onEditSubtask={onEditSubtask}
+          onDeleteSubtask={onDeleteSubtask}
         />
       ))}
     </div>
@@ -141,9 +194,16 @@ const TaskCard: React.FC<{
   task: Task;
   onDropTask: (id: string, newColumn: string) => void;
   onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
-  onToggleTask: (taskId: string) => void;
-  onToggleSubtask: (taskId: string, subtaskId: string) => void;
-}> = ({ task, onDropTask, onMoveSubtask, onToggleTask, onToggleSubtask }) => {
+  onEditTask: (taskId: string, content: string, priority?: string, estimatedDuration?: string) => void;
+  onDeleteTask: (taskId: string) => void;
+  onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
+  onDeleteSubtask: (taskId: string, subtaskId: string) => void;
+}> = ({ task, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(task.content);
+  const [editPriority, setEditPriority] = useState(task.priority || 'medium');
+  const [editDuration, setEditDuration] = useState(task.estimatedDuration || '');
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'task',
     item: { id: task.id, column: task.column },
@@ -152,66 +212,125 @@ const TaskCard: React.FC<{
     }),
   }));
 
-  const completedSubtasks = task.subtasks.filter(sub => sub.completed).length;
   const totalSubtasks = task.subtasks.length;
+
+  const handleSaveEdit = () => {
+    if (editContent.trim() && editContent !== task.content) {
+      onEditTask(task.id, editContent.trim(), editPriority, editDuration);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(task.content);
+    setEditPriority(task.priority || 'medium');
+    setEditDuration(task.estimatedDuration || '');
+    setIsEditing(false);
+  };
 
   return (
     <div
       ref={drag as any}
-      className={`p-4 mb-3 bg-white border-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 cursor-move transform hover:-translate-y-1 ${isDragging ? 'opacity-50 rotate-2' : ''
-        } ${task.completed
-          ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200'
-          : 'border-gray-200 hover:border-gray-300'
+      className={`p-4 mb-3 bg-white border-2 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 group ${isDragging ? 'opacity-50 rotate-2' : 'border-gray-200 hover:border-gray-300'
         }`}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={task.completed}
-              onChange={() => onToggleTask(task.id)}
-              className="h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded-md transition-colors"
-            />
-            {task.completed && (
-              <CheckCircle2 className="absolute -top-0.5 -left-0.5 h-6 w-6 text-emerald-600 pointer-events-none" />
-            )}
-          </div>
-          <h4 className={`font-semibold flex-1 transition-all ${task.completed
-            ? 'line-through text-gray-500'
-            : 'text-gray-900'
-            }`}>
-            {task.content}
-          </h4>
+        <div className="flex-1">
+          {isEditing ? (
+            <div className="space-y-3">
+              <Input
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="font-semibold"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEdit();
+                  if (e.key === 'Escape') handleCancelEdit();
+                }}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Select value={editPriority} onValueChange={(value: "high" | "medium" | "low") => setEditPriority(value)}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={editDuration}
+                  onChange={(e) => setEditDuration(e.target.value)}
+                  placeholder="Duration (e.g., 2 hours)"
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveEdit}>
+                  <Save className="h-3 w-3 mr-1" />
+                  Save
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                  <X className="h-3 w-3 mr-1" />
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <h4 className="font-semibold text-gray-900 cursor-move">
+              {task.content}
+            </h4>
+          )}
         </div>
-        <PriorityBadge priority={task.priority} />
+
+        {!isEditing && (
+          <div className="flex items-center gap-2">
+            <PriorityBadge priority={task.priority} />
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsEditing(true)}
+                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+              >
+                <Edit2 className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onDeleteTask(task.id)}
+                className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {task.estimatedDuration && (
+      {!isEditing && task.estimatedDuration && (
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
           <Clock className="h-3 w-3" />
           <span>{task.estimatedDuration}</span>
         </div>
       )}
 
-      {totalSubtasks > 0 && (
+      {!isEditing && totalSubtasks > 0 && (
         <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
-          <span>Progress: {completedSubtasks}/{totalSubtasks} subtasks</span>
-          <div className="w-16 bg-gray-200 rounded-full h-1 ml-2">
-            <div
-              className="bg-blue-600 h-1 rounded-full transition-all duration-300"
-              style={{ width: `${totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0}%` }}
-            />
-          </div>
+          <span>{totalSubtasks} subtask{totalSubtasks !== 1 ? 's' : ''}</span>
         </div>
       )}
 
-      <SubtaskList
-        taskId={task.id}
-        subtasks={task.subtasks}
-        onMoveSubtask={onMoveSubtask}
-        onToggleSubtask={onToggleSubtask}
-      />
+      {!isEditing && (
+        <SubtaskList
+          taskId={task.id}
+          subtasks={task.subtasks}
+          onMoveSubtask={onMoveSubtask}
+          onEditSubtask={onEditSubtask}
+          onDeleteSubtask={onDeleteSubtask}
+        />
+      )}
     </div>
   );
 };
@@ -223,9 +342,11 @@ const Column: React.FC<{
   tasks: Task[];
   onDropTask: (id: string, newColumn: string) => void;
   onMoveSubtask: (subtaskId: string, sourceTaskId: string, targetTaskId: string, targetIndex: number) => void;
-  onToggleTask: (taskId: string) => void;
-  onToggleSubtask: (taskId: string, subtaskId: string) => void;
-}> = ({ title, columnId, tasks, onDropTask, onMoveSubtask, onToggleTask, onToggleSubtask }) => {
+  onEditTask: (taskId: string, content: string, priority?: string, estimatedDuration?: string) => void;
+  onDeleteTask: (taskId: string) => void;
+  onEditSubtask: (taskId: string, subtaskId: string, content: string) => void;
+  onDeleteSubtask: (taskId: string, subtaskId: string) => void;
+}> = ({ title, columnId, tasks, onDropTask, onMoveSubtask, onEditTask, onDeleteTask, onEditSubtask, onDeleteSubtask }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'task',
     drop: (item: { id: string; column: string }) => onDropTask(item.id, columnId),
@@ -244,8 +365,6 @@ const Column: React.FC<{
     }
   };
 
-  const completedTasks = tasks.filter(task => task.completed).length;
-
   return (
     <div ref={drop as any} className={`min-w-[320px] p-4 border-2 border-dashed border-transparent rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50/50 shadow-lg scale-105' : 'hover:shadow-md'
       }`}>
@@ -256,11 +375,6 @@ const Column: React.FC<{
             <Badge variant="secondary" className="text-xs font-semibold bg-white/70">
               {tasks.length}
             </Badge>
-            {tasks.length > 0 && (
-              <Badge variant="outline" className="text-xs font-medium">
-                {completedTasks}/{tasks.length}
-              </Badge>
-            )}
           </div>
         </div>
         <div className="space-y-3 min-h-[200px]">
@@ -270,8 +384,10 @@ const Column: React.FC<{
               task={task}
               onDropTask={onDropTask}
               onMoveSubtask={onMoveSubtask}
-              onToggleTask={onToggleTask}
-              onToggleSubtask={onToggleSubtask}
+              onEditTask={onEditTask}
+              onDeleteTask={onDeleteTask}
+              onEditSubtask={onEditSubtask}
+              onDeleteSubtask={onDeleteSubtask}
             />
           ))}
           {tasks.length === 0 && (
@@ -432,92 +548,150 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
     }
   };
 
-  const handleToggleTask = async (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    const newCompleted = !task.completed;
-
-    // Optimistically update UI
-    setTasks((prev) => prev.map((task) =>
-      task.id === taskId ? { ...task, completed: newCompleted } : task
-    ));
-
+  const handleEditTask = async (taskId: string, content: string, priority?: string, estimatedDuration?: string) => {
     try {
-      const response = await fetch('/api/tasks', {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId: event._id,
-          taskId,
-          updates: { completed: newCompleted }
+          content,
+          priority,
+          estimatedDuration,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update task');
+        throw new Error('Failed to edit task');
       }
-    } catch (error) {
-      console.error('Error updating task:', error);
-      // Revert optimistic update
+
+      // Update local state
       setTasks((prev) => prev.map((task) =>
-        task.id === taskId ? { ...task, completed: !newCompleted } : task
+        task.id === taskId
+          ? { ...task, content, priority: priority as any, estimatedDuration }
+          : task
       ));
+
+      toast({
+        title: "Success",
+        description: "Task updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error editing task:', error);
       toast({
         title: "Error",
-        description: "Failed to update task. Please try again.",
+        description: "Failed to edit task. Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  const handleToggleSubtask = async (taskId: string, subtaskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    const subtask = task.subtasks.find(s => s.id === subtaskId);
-    if (!subtask) return;
-
-    const newCompleted = !subtask.completed;
-    const updatedSubtasks = task.subtasks.map(sub =>
-      sub.id === subtaskId ? { ...sub, completed: newCompleted } : sub
-    );
-
-    // Optimistically update UI
-    setTasks((prev) => prev.map((task) =>
-      task.id === taskId ? { ...task, subtasks: updatedSubtasks } : task
-    ));
-
+  const handleDeleteTask = async (taskId: string) => {
     try {
-      const response = await fetch('/api/tasks', {
+      const response = await fetch(`/api/tasks/${taskId}?eventId=${event._id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete task');
+      }
+
+      // Update local state
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+
+      toast({
+        title: "Success",
+        description: "Task deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete task. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditSubtask = async (taskId: string, subtaskId: string, content: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}/subtasks/${subtaskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId: event._id,
-          taskId,
-          updates: { subtasks: updatedSubtasks }
+          content,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update subtask');
+        throw new Error('Failed to edit subtask');
       }
-    } catch (error) {
-      console.error('Error updating subtask:', error);
-      // Revert optimistic update
+
+      // Update local state
       setTasks((prev) => prev.map((task) =>
         task.id === taskId
           ? {
             ...task,
             subtasks: task.subtasks.map((sub) =>
-              sub.id === subtaskId ? { ...sub, completed: !newCompleted } : sub
+              sub.id === subtaskId ? { ...sub, content } : sub
             )
           }
           : task
       ));
+
+      toast({
+        title: "Success",
+        description: "Subtask updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error editing subtask:', error);
       toast({
         title: "Error",
-        description: "Failed to update subtask. Please try again.",
+        description: "Failed to edit subtask. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteSubtask = async (taskId: string, subtaskId: string) => {
+    try {
+      console.log('Deleting subtask:', { taskId, subtaskId, eventId: event._id });
+
+      const response = await fetch(`/api/tasks/${taskId}/subtasks/${subtaskId}?eventId=${event._id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        console.error('Delete subtask failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          url: response.url
+        });
+        throw new Error(errorData.error || errorData.message || `Failed to delete subtask (${response.status}: ${response.statusText})`);
+      }
+
+      // Update local state
+      setTasks((prev) => prev.map((task) =>
+        task.id === taskId
+          ? {
+            ...task,
+            subtasks: task.subtasks.filter((sub) => sub.id !== subtaskId)
+          }
+          : task
+      ));
+
+      toast({
+        title: "Success",
+        description: "Subtask deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting subtask:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete subtask. Please try again.",
         variant: "destructive"
       });
     }
@@ -554,32 +728,6 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
     });
   };
 
-  const handleClearTasks = async () => {
-    try {
-      const response = await fetch(`/api/tasks?eventId=${event._id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setTasks([]);
-        setHasGenerated(false);
-        toast({
-          title: "Tasks Cleared",
-          description: "All tasks have been removed.",
-        });
-      } else {
-        throw new Error('Failed to clear tasks');
-      }
-    } catch (error) {
-      console.error('Error clearing tasks:', error);
-      toast({
-        title: "Error",
-        description: "Failed to clear tasks. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const columns = [
     { id: 'planning', title: 'Planning', icon: '📋' },
     { id: 'developing', title: 'In Progress', icon: '🔧' },
@@ -589,13 +737,8 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
 
   const getTaskStats = () => {
     const total = tasks.length;
-    const completed = tasks.filter(task => task.completed).length;
     const totalSubtasks = tasks.reduce((sum, task) => sum + task.subtasks.length, 0);
-    const completedSubtasks = tasks.reduce((sum, task) =>
-      sum + task.subtasks.filter(sub => sub.completed).length, 0
-    );
-    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, progress, totalSubtasks, completedSubtasks };
+    return { total, totalSubtasks };
   };
 
   const stats = getTaskStats();
@@ -636,60 +779,16 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
         </Card>
       )}
 
-      {/* Progress Stats */}
+      {/* Task Stats */}
       {tasks.length > 0 && (
-        <Card className="mb-6 shadow-lg border-0 bg-gradient-to-br from-white to-gray-50">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center p-4 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="text-3xl font-bold text-blue-700 mb-1">{stats.total}</div>
-                <div className="text-sm font-medium text-blue-600">Total Tasks</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-emerald-50 border border-emerald-100">
-                <div className="text-3xl font-bold text-emerald-700 mb-1">{stats.completed}</div>
-                <div className="text-sm font-medium text-emerald-600">Completed</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-purple-50 border border-purple-100">
-                <div className="text-3xl font-bold text-purple-700 mb-1">{stats.progress}%</div>
-                <div className="text-sm font-medium text-purple-600">Progress</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-orange-50 border border-orange-100">
-                <div className="text-2xl font-bold text-orange-700 mb-1">{stats.completedSubtasks}/{stats.totalSubtasks}</div>
-                <div className="text-sm font-medium text-orange-600">Subtasks</div>
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex gap-4">
+                <span><strong>{stats.total}</strong> tasks</span>
+                <span><strong>{stats.totalSubtasks}</strong> subtasks</span>
               </div>
             </div>
-
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Overall Progress</span>
-                <span className="text-sm font-bold text-gray-900">{stats.progress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-                <div
-                  className="bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 h-4 rounded-full transition-all duration-500 ease-out shadow-sm"
-                  style={{ width: `${stats.progress}%` }}
-                />
-              </div>
-            </div>
-
-            {hasGenerated && (
-              <div className="flex gap-2 mt-4">
-                <Button variant="outline" onClick={handleClearTasks} size="sm" className="flex items-center gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Clear All Tasks
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleGenerateTasks(true)}
-                  size="sm"
-                  disabled={isGenerating}
-                  className="flex items-center gap-2"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
-                  Regenerate Tasks
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
@@ -707,8 +806,10 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
                   tasks={tasks.filter((task) => task.column === col.id)}
                   onDropTask={handleDropTask}
                   onMoveSubtask={handleMoveSubtask}
-                  onToggleTask={handleToggleTask}
-                  onToggleSubtask={handleToggleSubtask}
+                  onEditTask={handleEditTask}
+                  onDeleteTask={handleDeleteTask}
+                  onEditSubtask={handleEditSubtask}
+                  onDeleteSubtask={handleDeleteSubtask}
                 />
               ))}
             </div>
@@ -722,9 +823,9 @@ const EventPlanner: React.FC<EventPlannerProps> = ({ event, isSubEvent = false }
           <AlertCircle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks generated</h3>
           <p className="text-gray-600 mb-4">Something went wrong with task generation. Please try again.</p>
-          <Button onClick={() => handleGenerateTasks(true)} disabled={isGenerating} className="flex items-center gap-2">
-            <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
-            Try Again
+          <Button onClick={() => handleGenerateTasks(false)} disabled={isGenerating} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Generate Tasks
           </Button>
         </div>
       )}

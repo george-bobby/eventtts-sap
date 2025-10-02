@@ -27,7 +27,7 @@ export async function createFeedbackTemplate(
 	try {
 		await connectToDatabase();
 
-		const { eventId, customQuestions, feedbackHours } = params;
+		const { eventId, customQuestions } = params;
 
 		// Check if template already exists
 		const existingTemplate = await FeedbackTemplate.findOne({ event: eventId });
@@ -35,7 +35,6 @@ export async function createFeedbackTemplate(
 		if (existingTemplate) {
 			// Update existing template
 			existingTemplate.customQuestions = customQuestions;
-			existingTemplate.feedbackHours = feedbackHours;
 			await existingTemplate.save();
 			return JSON.parse(JSON.stringify(existingTemplate));
 		}
@@ -44,7 +43,6 @@ export async function createFeedbackTemplate(
 		const template = await FeedbackTemplate.create({
 			event: eventId,
 			customQuestions,
-			feedbackHours,
 			isActive: true,
 		});
 
@@ -295,7 +293,78 @@ export async function scheduleFeedbackEmails(eventId: string) {
 }
 
 /**
- * Process pending feedback emails (to be called by cron job)
+ * Send feedback emails manually to all event participants
+ */
+export async function sendFeedbackEmailsManually(eventId: string) {
+	try {
+		await connectToDatabase();
+
+		const event = await Event.findById(eventId).populate(
+			'organizer',
+			'firstName lastName'
+		);
+
+		if (!event) {
+			throw new Error('Event not found');
+		}
+
+		if (!event.feedbackEnabled) {
+			return {
+				success: false,
+				message: 'Feedback is not enabled for this event',
+			};
+		}
+
+		// Get all attendees for this event
+		const orders = await Order.find({ event: eventId }).populate(
+			'user',
+			'firstName lastName email'
+		);
+
+		if (orders.length === 0) {
+			return {
+				success: false,
+				message: 'No attendees found for this event',
+			};
+		}
+
+		// Prepare email data for all attendees
+		const attendeeEmails: FeedbackEmailData[] = orders.map((order) => ({
+			eventTitle: event.title,
+			eventId: event._id.toString(),
+			attendeeName: `${order.user.firstName} ${order.user.lastName}`,
+			attendeeEmail: order.user.email,
+			eventDate: event.startDate.toLocaleDateString(),
+			feedbackUrl: `${
+				process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+			}/event/${event._id}/submit/feedback`,
+			organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
+		}));
+
+		// Send emails
+		const emailResults = await sendBulkFeedbackEmails(attendeeEmails);
+
+		const failedEmails = emailResults.filter((r) => !r.success);
+		const successfulEmails = emailResults.filter((r) => r.success);
+
+		return {
+			success: failedEmails.length === 0,
+			totalEmails: emailResults.length,
+			successfulEmails: successfulEmails.length,
+			failedEmails: failedEmails.length,
+			message:
+				failedEmails.length === 0
+					? `Successfully sent feedback emails to ${successfulEmails.length} participants`
+					: `Sent ${successfulEmails.length} emails successfully, ${failedEmails.length} failed`,
+		};
+	} catch (error) {
+		console.error('Error sending feedback emails manually:', error);
+		throw error;
+	}
+}
+
+/**
+ * Process pending feedback emails (deprecated - keeping for backward compatibility)
  */
 export async function processPendingFeedbackEmails() {
 	try {
