@@ -53,19 +53,6 @@ export interface IFeedbackResponse extends Document {
 	ipAddress?: string; // For spam prevention
 }
 
-// Email Schedule Interface (deprecated - keeping for backward compatibility)
-export interface IEmailSchedule extends Document {
-	_id: string;
-	event: Schema.Types.ObjectId;
-	scheduledFor: Date;
-	emailType: 'feedback';
-	status: 'pending' | 'sent' | 'failed';
-	sentAt?: Date;
-	failureReason?: string;
-	retryCount: number;
-	createdAt: Date;
-}
-
 // Feedback Template Schema
 const feedbackTemplateSchema = new Schema<IFeedbackTemplate>(
 	{
@@ -129,37 +116,14 @@ const feedbackResponseSchema = new Schema<IFeedbackResponse>(
 	{ timestamps: true }
 );
 
-// Email Schedule Schema (deprecated - keeping for backward compatibility)
-const emailScheduleSchema = new Schema<IEmailSchedule>(
-	{
-		event: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
-		scheduledFor: { type: Date, required: true },
-		emailType: { type: String, enum: ['feedback'], default: 'feedback' },
-		status: {
-			type: String,
-			enum: ['pending', 'sent', 'failed'],
-			default: 'pending',
-		},
-		sentAt: { type: Date },
-		failureReason: { type: String },
-		retryCount: { type: Number, default: 0 },
-	},
-	{ timestamps: true }
-);
-
 // Indexes for better performance
 feedbackResponseSchema.index({ event: 1, user: 1 });
 feedbackResponseSchema.index({ event: 1, submittedAt: -1 });
-emailScheduleSchema.index({ scheduledFor: 1, status: 1 });
-emailScheduleSchema.index({ event: 1 });
 
 // Models
 const FeedbackTemplate =
 	models.FeedbackTemplate || model('FeedbackTemplate', feedbackTemplateSchema);
 const FeedbackResponse =
 	models.FeedbackResponse || model('FeedbackResponse', feedbackResponseSchema);
-// EmailSchedule is deprecated but kept for backward compatibility
-const EmailSchedule =
-	models.EmailSchedule || model('EmailSchedule', emailScheduleSchema);
 
-export { FeedbackTemplate, FeedbackResponse, EmailSchedule };
+export { FeedbackTemplate, FeedbackResponse };

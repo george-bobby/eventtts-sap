@@ -1,11 +1,7 @@
 'use server';
 
 import { connectToDatabase } from '../dbconnection';
-import {
-	FeedbackTemplate,
-	FeedbackResponse,
-	EmailSchedule,
-} from '../models/feedback.model';
+import { FeedbackTemplate, FeedbackResponse } from '../models/feedback.model';
 import Event from '../models/event.model';
 import User from '../models/user.model';
 import Order from '../models/order.model';
@@ -232,67 +228,6 @@ export async function getFeedbackAnalytics(
 }
 
 /**
- * Schedule feedback emails for an event
- */
-export async function scheduleFeedbackEmails(eventId: string) {
-	try {
-		await connectToDatabase();
-
-		const event = await Event.findById(eventId).populate(
-			'organizer',
-			'firstName lastName'
-		);
-
-		if (!event) {
-			throw new Error('Event not found');
-		}
-
-		if (!event.feedbackEnabled) {
-			return {
-				success: false,
-				message: 'Feedback is not enabled for this event',
-			};
-		}
-
-		// Calculate when to send feedback emails
-		const eventEndTime = new Date(event.endDate);
-		const feedbackSendTime = new Date(
-			eventEndTime.getTime() + (event.feedbackHours || 2) * 60 * 60 * 1000
-		);
-
-		// Check if already scheduled
-		const existingSchedule = await EmailSchedule.findOne({
-			event: eventId,
-			emailType: 'feedback',
-		});
-
-		if (existingSchedule) {
-			// Update existing schedule
-			existingSchedule.scheduledFor = feedbackSendTime;
-			existingSchedule.status = 'pending';
-			await existingSchedule.save();
-		} else {
-			// Create new schedule
-			await EmailSchedule.create({
-				event: eventId,
-				scheduledFor: feedbackSendTime,
-				emailType: 'feedback',
-				status: 'pending',
-			});
-		}
-
-		return {
-			success: true,
-			scheduledFor: feedbackSendTime,
-			message: `Feedback emails scheduled for ${feedbackSendTime.toLocaleString()}`,
-		};
-	} catch (error) {
-		console.error('Error scheduling feedback emails:', error);
-		throw error;
-	}
-}
-
-/**
  * Send feedback emails manually to all event participants
  */
 export async function sendFeedbackEmailsManually(eventId: string) {
@@ -359,96 +294,6 @@ export async function sendFeedbackEmailsManually(eventId: string) {
 		};
 	} catch (error) {
 		console.error('Error sending feedback emails manually:', error);
-		throw error;
-	}
-}
-
-/**
- * Process pending feedback emails (deprecated - keeping for backward compatibility)
- */
-export async function processPendingFeedbackEmails() {
-	try {
-		await connectToDatabase();
-
-		const now = new Date();
-		const pendingEmails = await EmailSchedule.find({
-			emailType: 'feedback',
-			status: 'pending',
-			scheduledFor: { $lte: now },
-		}).populate('event');
-
-		const results = [];
-
-		for (const emailSchedule of pendingEmails) {
-			try {
-				const event = emailSchedule.event;
-
-				// Get all attendees for this event
-				const orders = await Order.find({ event: event._id }).populate(
-					'user',
-					'firstName lastName email'
-				);
-
-				if (orders.length === 0) {
-					emailSchedule.status = 'sent';
-					emailSchedule.sentAt = new Date();
-					await emailSchedule.save();
-					continue;
-				}
-
-				// Prepare email data for all attendees
-				const attendeeEmails: FeedbackEmailData[] = orders.map((order) => ({
-					eventTitle: event.title,
-					eventId: event._id.toString(),
-					attendeeName: `${order.user.firstName} ${order.user.lastName}`,
-					attendeeEmail: order.user.email,
-					eventDate: event.startDate.toLocaleDateString(),
-					feedbackUrl: `${
-						process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-					}/event/${event._id}/submit/feedback`,
-					organizerName: `${event.organizer.firstName} ${event.organizer.lastName}`,
-				}));
-
-				// Send emails
-				const emailResults = await sendBulkFeedbackEmails(attendeeEmails);
-
-				// Update schedule status
-				const failedEmails = emailResults.filter((r) => !r.success);
-				if (failedEmails.length === 0) {
-					emailSchedule.status = 'sent';
-					emailSchedule.sentAt = new Date();
-				} else {
-					emailSchedule.status = 'failed';
-					emailSchedule.failureReason = `Failed to send ${failedEmails.length} out of ${emailResults.length} emails`;
-					emailSchedule.retryCount += 1;
-				}
-
-				await emailSchedule.save();
-
-				results.push({
-					eventId: event._id,
-					eventTitle: event.title,
-					totalEmails: emailResults.length,
-					successfulEmails: emailResults.filter((r) => r.success).length,
-					failedEmails: failedEmails.length,
-				});
-			} catch (error) {
-				console.error(
-					`Error processing feedback emails for event ${emailSchedule.event._id}:`,
-					error
-				);
-
-				emailSchedule.status = 'failed';
-				emailSchedule.failureReason =
-					error instanceof Error ? error.message : 'Unknown error';
-				emailSchedule.retryCount += 1;
-				await emailSchedule.save();
-			}
-		}
-
-		return { success: true, processed: results };
-	} catch (error) {
-		console.error('Error processing pending feedback emails:', error);
 		throw error;
 	}
 }

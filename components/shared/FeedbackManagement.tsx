@@ -214,7 +214,7 @@ export default function FeedbackManagement({
             <Button
               onClick={() => setShowFormManager(!showFormManager)}
               variant={showFormManager ? "secondary" : "default"}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
               <Settings className="w-4 h-4 mr-2" />
               {showFormManager ? 'View Responses' : 'Configure Form'}
@@ -279,6 +279,7 @@ export default function FeedbackManagement({
             onClick={() => setShowFormManager(!showFormManager)}
             variant="outline"
             size="sm"
+            className="text-white"
           >
             <Settings className="w-4 h-4 mr-2 text-white" />
             {showFormManager ? 'View Responses' : 'Configure Form'}

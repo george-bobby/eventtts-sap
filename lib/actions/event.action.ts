@@ -19,11 +19,7 @@ import {
 	PhotoComment,
 } from '../models/gallery.model';
 import { CertificateTemplate, Certificate } from '../models/certificate.model';
-import {
-	FeedbackTemplate,
-	FeedbackResponse,
-	EmailSchedule,
-} from '../models/feedback.model';
+import { FeedbackTemplate, FeedbackResponse } from '../models/feedback.model';
 import { Stakeholder } from '../models/stakeholder.model';
 import { EventUpdate } from '../models/eventupdate.model';
 // import { QRCode } from '../models/qrcode.model';
@@ -637,7 +633,6 @@ export async function deleteEventById(eventId: string) {
 		console.log('Deleting feedback data...');
 		await FeedbackResponse.deleteMany({ event: eventObjectId });
 		await FeedbackTemplate.deleteMany({ event: eventObjectId });
-		await EmailSchedule.deleteMany({ event: eventObjectId });
 
 		// 4. Delete stakeholders
 		console.log('Deleting stakeholder data...');
