@@ -28,7 +28,7 @@ interface PublicGalleryViewProps {
       page: number;
       limit: number;
       total: number;
-      pages: number;
+      totalPages: number;
     };
   };
   filters: {
@@ -279,10 +279,10 @@ export default function PublicGalleryView({
       )}
 
       {/* Pagination */}
-      {pagination.pages > 1 && (
+      {pagination.totalPages > 1 && (
         <div className="flex justify-center mt-8">
           <div className="flex gap-2">
-            {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
               <Button
                 key={page}
                 variant={page === pagination.page ? 'default' : 'outline'}

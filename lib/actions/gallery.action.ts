@@ -242,7 +242,7 @@ export async function getPhotoGallery(
 		if (gallery.visibility === 'restricted') {
 			// Check if user has access
 			const hasAccess = await PhotoAccess.findOne({
-				gallery: galleryId,
+				gallery: gallery._id,
 				$or: [
 					{ user: userId },
 					{ email: userId }, // If userId is actually an email
@@ -350,7 +350,7 @@ export async function getGalleryPhotos(
 				page,
 				limit,
 				total,
-				pages: Math.ceil(total / limit),
+				totalPages: Math.ceil(total / limit),
 			},
 		};
 	} catch (error) {
