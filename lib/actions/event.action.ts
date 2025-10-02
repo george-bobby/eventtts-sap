@@ -107,6 +107,7 @@ export async function createEvent(eventData: any) {
 				await createFeedbackTemplate({
 					eventId: mainEvent._id.toString(),
 					customQuestions: customQuestions || [],
+					feedbackHours: (mainEventData as any).feedbackHours || 2,
 				});
 			} catch (feedbackError) {
 				console.error('Error setting up feedback for event:', feedbackError);
